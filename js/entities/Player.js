@@ -7,6 +7,8 @@ const SKIN = 0.5; // overlaps thinner than this count as touching, not colliding
 const QUARTER_TURN = Math.PI / 2;
 const PREDICT_STEP = 1 / 120;
 const PREDICT_LIMIT = 5; // seconds of flight to look ahead before giving up
+const TRAIL_LIFE = 0.28; // seconds a trail ghost lingers
+const TRAIL_EVERY = 1 / 60; // seconds between ghosts
 
 /**
  * The hero: a small box that only moves when slung. It tumbles in the air and
@@ -34,6 +36,8 @@ export class Player extends Entity {
     this.spin = 0; // radians per second while airborne
     this.scaleX = 1;
     this.scaleY = 1;
+    this.trail = []; // fading ghosts of the box, left behind in flight
+    this.trailTimer = 0;
   }
 
   /** True while a slingshot launch can start. */
@@ -200,11 +204,34 @@ export class Player extends Entity {
     else this.angle += this.spin * dt;
     this.scaleX = damp(this.scaleX, 1, 12, dt);
     this.scaleY = damp(this.scaleY, 1, 12, dt);
+    this.updateTrail(dt);
+  }
+
+  /** Drops a ghost every `TRAIL_EVERY` seconds while airborne; old ones fade out. */
+  updateTrail(dt) {
+    for (const ghost of this.trail) ghost.age += dt;
+    this.trail = this.trail.filter((ghost) => ghost.age < TRAIL_LIFE);
+    this.trailTimer -= dt;
+    if (this.grounded || this.trailTimer > 0) return;
+    this.trailTimer = TRAIL_EVERY;
+    this.trail.push({ x: this.centerX, y: this.centerY, angle: this.angle, age: 0 });
   }
 
   render(ctx, theme) {
     const width = this.width * this.scaleX;
     const height = this.height * this.scaleY;
+
+    ctx.fillStyle = theme.colors.player;
+    for (const ghost of this.trail) {
+      const fade = 1 - ghost.age / TRAIL_LIFE;
+      const size = this.width * (0.35 + 0.5 * fade);
+      ctx.save();
+      ctx.globalAlpha = fade * 0.45;
+      ctx.translate(ghost.x, ghost.y);
+      ctx.rotate(ghost.angle);
+      ctx.fillRect(-size / 2, -size / 2, size, size);
+      ctx.restore();
+    }
 
     ctx.save();
     ctx.translate(this.centerX, this.centerY);
