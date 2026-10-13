@@ -10,7 +10,6 @@ const COLOR_TOKENS = {
   platformC: '--platform-c',
   platformD: '--platform-d',
   platformEdge: '--platform-edge',
-  warn: '--warn',
   void: '--void',
   voidClear: '--void-clear',
   dust: '--dust',

@@ -3,16 +3,17 @@ import { Platform } from '../entities/Platform.js';
 import { clamp, lerp } from '../utils/math.js';
 
 const RULES = CONFIG.generation;
-const PLAYER = CONFIG.player;
 const NO_CEILING = -Infinity;
+const SPREAD_TRIES = 12;
 
 /**
  * Builds the climb one platform at a time, bottom to top, forever.
  *
  * Every platform is placed where a full jump from the previous one can land:
  * never higher than the jump's peak (less `riseMargin`), and never further
- * sideways than the same arc can carry the player. Platforms are solid only
- * from above, so one sitting directly overhead is fine.
+ * sideways than the same arc can carry the player. Within that, each one is
+ * pushed away from the last so the climb zigzags across the column instead
+ * of stacking up in one place.
  */
 export class LevelGenerator {
   constructor({ random, jumpModel, viewWidth }) {
@@ -25,14 +26,12 @@ export class LevelGenerator {
 
   /** Starts a new climb. Returns the floor the player starts on. */
   createStart() {
-    const { floorTop, fallDelay } = CONFIG.start;
     this.count = 0;
     this.last = new Platform({
       x: 0,
-      y: floorTop,
+      y: CONFIG.start.floorTop,
       width: this.viewWidth,
       height: CONFIG.platform.thickness.max,
-      fallDelay,
       index: 3,
       scores: false,
     });
@@ -53,8 +52,6 @@ export class LevelGenerator {
       y: top,
       width,
       height: this.random.range(thickness.min, thickness.max),
-      // Wide platforms wait longer, so there is always time to run across.
-      fallDelay: tuning.reactionTime + width / PLAYER.maxSpeed,
       index: this.count,
     });
 
@@ -70,12 +67,25 @@ export class LevelGenerator {
     return Object.fromEntries(Object.keys(easy).map((key) => [key, lerp(easy[key], hard[key], difficulty)]));
   }
 
-  /** Anywhere in the column whose nearest edge is within the safe sideways reach of the last platform. */
+  /**
+   * Anywhere in the column whose nearest edge is within the safe sideways reach
+   * of the last platform, preferring spots at least `minShift` away from it.
+   */
   pickX(top, width, tuning) {
     const reach = this.jumpModel.reach(this.last.top, top, NO_CEILING) * RULES.reachSafety * tuning.reachMax;
-    const { sideMargin } = RULES;
+    const { sideMargin, minShift } = RULES;
     const min = Math.max(sideMargin, this.last.left - reach - width);
-    const max = Math.min(this.viewWidth - sideMargin - width, this.last.right + reach);
-    return this.random.range(min, Math.max(min, max));
+    const max = Math.max(min, Math.min(this.viewWidth - sideMargin - width, this.last.right + reach));
+    const lastCenter = this.last.centerX;
+
+    let best = min;
+    let bestShift = -1;
+    for (let attempt = 0; attempt < SPREAD_TRIES; attempt += 1) {
+      const x = this.random.range(min, max);
+      const shift = Math.abs(x + width / 2 - lastCenter);
+      if (shift >= minShift) return x;
+      if (shift > bestShift) [best, bestShift] = [x, shift];
+    }
+    return best; // no room for a full shift: take the widest one found
   }
 }

@@ -55,13 +55,7 @@ export class World {
     this.extendLevel();
   }
 
-  /** The run has begun: the floor starts its countdown like any other platform. */
-  begin() {
-    this.startFloor.touch();
-  }
-
   update(dt, input, launch = null) {
-    for (const platform of this.platforms) platform.update(dt);
     if (this.player.alive) this.updatePlayer(dt, input, launch);
     this.effects.update(dt);
     this.extendLevel();
@@ -109,7 +103,7 @@ export class World {
     while (this.generator.last.top > horizon) this.platforms.push(this.generator.next());
   }
 
-  /** Drops platforms that have fallen out of the bottom of the view. */
+  /** Drops platforms that have slipped out of the bottom of the view. */
   forgetOffscreen() {
     const below = this.abyss.top + CONFIG.generation.cleanupMargin;
     this.platforms = this.platforms.filter((platform) => platform.top < below);

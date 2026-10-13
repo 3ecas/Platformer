@@ -62,7 +62,6 @@ export class Player extends Entity {
     this.jump(input);
     if (launch) this.sling(launch);
     this.fall(dt);
-    this.rideGround();
     this.moveX(dt, bounds);
     this.moveY(dt, solids);
 
@@ -126,11 +125,6 @@ export class Player extends Entity {
     this.vy = Math.min(this.vy + gravity * dt, SETTINGS.maxFallSpeed);
   }
 
-  /** A dropping platform carries whoever stands on it down with it. */
-  rideGround() {
-    if (this.grounded) this.y += this.ground.y - this.ground.prevY;
-  }
-
   /** Platforms are open at the sides, so only the walls stop sideways movement. */
   moveX(dt, bounds) {
     this.x += this.vx * dt;
@@ -155,7 +149,7 @@ export class Player extends Entity {
     let landing = null;
     for (const solid of solids) {
       if (!this.overlapsHorizontally(solid)) continue;
-      const crossed = previousBottom <= Math.max(solid.top, solid.prevY) + SKIN && this.bottom >= solid.top;
+      const crossed = previousBottom <= solid.top + SKIN && this.bottom >= solid.top;
       if (crossed && (!landing || solid.top < landing.top)) landing = solid;
     }
     if (!landing) return;

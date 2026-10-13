@@ -88,7 +88,6 @@ export class Game {
       this.newRun();
     }
     this.state = State.PLAYING;
-    this.world.begin();
     this.screens.hide();
     this.setSlingshot(true);
     this.input.endStep(); // the key that started the run shouldn't also jump

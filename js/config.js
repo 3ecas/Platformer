@@ -26,9 +26,9 @@ export const CONFIG = deepFreeze({
   },
 
   controls: {
-    left: ['ArrowLeft', 'KeyA'],
-    right: ['ArrowRight', 'KeyD'],
-    jump: ['Space', 'ArrowUp', 'KeyW'],
+    left: ['ArrowLeft'],
+    right: ['ArrowRight'],
+    jump: ['Space', 'ArrowUp'],
     confirm: ['Space', 'Enter'],
     pause: ['Escape', 'KeyP'],
   },
@@ -41,7 +41,7 @@ export const CONFIG = deepFreeze({
     maxShake: 10,
     shakeDecay: 1.6,
     // The view also creeps upwards on its own, faster the higher you are.
-    creepStartHeight: 240, // world pixels climbed before the creep begins
+    creepStartHeight: 0, // world pixels climbed before the creep begins
     creepMaxHeight: 6000, // height at which the creep reaches full speed
     creepMin: 14,
     creepMax: 70,
@@ -76,28 +76,25 @@ export const CONFIG = deepFreeze({
   },
 
   platform: {
-    gravity: 1700,
-    maxFallSpeed: 1400,
     thickness: { min: 16, max: 20 },
-    shakeAmplitude: 2.5,
   },
 
   start: {
     floorTop: 640, // a full-width floor near the bottom of the first screen
-    fallDelay: 2.4,
   },
 
   generation: {
     lookAhead: 480, // keep the climb built this far above the top of the view
-    cleanupMargin: 240, // forget platforms this far below the view
+    cleanupMargin: 0, // platforms are gone once they're fully below the view
     sideMargin: 6, // keep platforms this far in from the walls
     riseMargin: 22, // the jump's peak must clear the next top by this much
+    minShift: 150, // preferred sideways distance between neighbouring platforms' centres
     reachSafety: 0.85, // share of the theoretical jump reach the generator relies on
     rampPlatforms: 120, // platforms until the difficulty maxes out
     // Difficulty blends from `easy` to `hard`. `riseMin`/`riseMax` are fractions of the
     // highest safe climb; `reachMax` caps how far sideways the next platform may sit.
-    easy: { widthMin: 130, widthMax: 210, riseMin: 0.35, riseMax: 0.6, reachMax: 0.6, reactionTime: 1.1 },
-    hard: { widthMin: 64, widthMax: 110, riseMin: 0.6, riseMax: 1, reachMax: 1, reactionTime: 0.35 },
+    easy: { widthMin: 100, widthMax: 160, riseMin: 0.65, riseMax: 0.85, reachMax: 0.85 },
+    hard: { widthMin: 56, widthMax: 96, riseMin: 0.85, riseMax: 1, reachMax: 1 },
   },
 
   score: {
