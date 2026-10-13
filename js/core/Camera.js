@@ -5,8 +5,8 @@ import { damp } from '../utils/math.js';
  *
  * The horizontal view is fixed: the column is exactly as wide as the screen.
  * When the player climbs above `followLine` the camera is dragged up with
- * them, and it can also creep upwards on its own. It never moves back down,
- * so dropping out of the bottom of the view ends the run.
+ * them. It never moves back down, so dropping out of the bottom of the view
+ * ends the run.
  */
 export class Camera {
   constructor(viewport, { followLine, smoothing, maxShake, shakeDecay }) {
@@ -52,11 +52,9 @@ export class Camera {
     this.trauma = 0;
   }
 
-  /** `creep` is how fast (world px/s) the view rises on its own. */
-  follow(target, dt, creep = 0) {
+  follow(target, dt) {
     const line = this.targetY + this.height * this.followLine;
     if (target.top < line) this.targetY -= line - target.top;
-    this.targetY -= creep * dt;
 
     this.y = damp(this.y, this.targetY, this.smoothing, dt);
     this.trauma = Math.max(0, this.trauma - this.shakeDecay * dt);

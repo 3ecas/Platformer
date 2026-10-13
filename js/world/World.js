@@ -3,11 +3,10 @@ import { EVENTS } from '../events.js';
 import { Effects } from '../effects/Effects.js';
 import { Abyss } from '../entities/Abyss.js';
 import { Player } from '../entities/Player.js';
-import { clamp, lerp } from '../utils/math.js';
+import { clamp } from '../utils/math.js';
 import { JumpModel } from './JumpModel.js';
 import { LevelGenerator } from './LevelGenerator.js';
 
-const CREEP = CONFIG.camera;
 const PREVIEW_STEP = 1 / 30;
 
 /** Everything in the climb, and the rules that connect it. */
@@ -33,13 +32,6 @@ export class World {
     return Math.floor(this.climbed / CONFIG.score.pixelsPerMeter);
   }
 
-  /** How fast the view creeps upwards on its own, given how high the player is. */
-  get creep() {
-    if (this.climbed < CREEP.creepStartHeight) return 0;
-    const t = clamp((this.climbed - CREEP.creepStartHeight) / CREEP.creepMaxHeight, 0, 1);
-    return lerp(CREEP.creepMin, CREEP.creepMax, t);
-  }
-
   /** Builds a fresh climb with the player standing in the middle of the floor. */
   reset(bestMeters = 0) {
     this.startFloor = this.generator.createStart();
@@ -55,16 +47,18 @@ export class World {
     this.extendLevel();
   }
 
-  update(dt, input, launch = null) {
-    if (this.player.alive) this.updatePlayer(dt, input, launch);
+  update(dt, launch = null) {
+    for (const platform of this.platforms) platform.update(dt);
+    if (this.player.alive) this.updatePlayer(dt, launch);
     this.effects.update(dt);
     this.extendLevel();
     this.forgetOffscreen();
   }
 
-  updatePlayer(dt, input, launch) {
+  updatePlayer(dt, launch) {
     const { player } = this;
-    player.update(dt, input, this.platforms, { left: 0, right: this.width }, launch);
+    const bounds = { left: 0, right: this.width, bottom: this.abyss.top };
+    player.update(dt, this.platforms, bounds, launch);
 
     if (player.jumped) this.effects.jumpDust(player.centerX, player.bottom);
     if (player.landedOn) this.onLanded(player.landedOn);

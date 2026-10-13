@@ -14,7 +14,6 @@ const COLOR_TOKENS = {
   voidClear: '--void-clear',
   dust: '--dust',
   player: '--player',
-  playerEye: '--player-eye',
   pickupText: '--pickup-text',
 };
 

@@ -26,9 +26,6 @@ export const CONFIG = deepFreeze({
   },
 
   controls: {
-    left: ['ArrowLeft'],
-    right: ['ArrowRight'],
-    jump: ['Space', 'ArrowUp'],
     confirm: ['Space', 'Enter'],
     pause: ['Escape', 'KeyP'],
   },
@@ -40,11 +37,6 @@ export const CONFIG = deepFreeze({
     smoothing: 6, // how quickly the camera catches up (higher = snappier)
     maxShake: 10,
     shakeDecay: 1.6,
-    // The view also creeps upwards on its own, faster the higher you are.
-    creepStartHeight: 0, // world pixels climbed before the creep begins
-    creepMaxHeight: 6000, // height at which the creep reaches full speed
-    creepMin: 14,
-    creepMax: 70,
   },
 
   hud: {
@@ -53,18 +45,16 @@ export const CONFIG = deepFreeze({
 
   player: {
     size: 24,
-    maxSpeed: 380,
-    groundAccel: 3600,
-    airAccel: 2600,
-    groundFriction: 3200,
-    airFriction: 900,
-    jumpHeight: 170, // apex of a full, held jump
-    timeToApex: 0.38,
+    maxSpeed: 380, // the sideways speed the level generator plans its gaps around
+    groundFriction: 3200, // stops a landing slide quickly
+    airFriction: 0, // a launch keeps its sideways speed
+    // The launch arc: these set gravity, and the height of a near-full shot.
+    jumpHeight: 210,
+    timeToApex: 0.42,
     fallGravityMultiplier: 1.3, // falling is snappier than rising
-    jumpCutMultiplier: 0.45, // upward speed kept when jump is released early
     maxFallSpeed: 1200,
-    coyoteTime: 0.1, // grace period to jump after running off an edge
-    jumpBufferTime: 0.12, // a jump pressed this long before landing still counts
+    coyoteTime: 0.1, // grace period to launch after sliding off an edge
+    spinRate: 9, // radians per second the box aims to tumble in the air
   },
 
   slingshot: {
@@ -89,12 +79,18 @@ export const CONFIG = deepFreeze({
     sideMargin: 6, // keep platforms this far in from the walls
     riseMargin: 22, // the jump's peak must clear the next top by this much
     minShift: 150, // preferred sideways distance between neighbouring platforms' centres
+    // Platforms that slide side to side, from `movingFrom` metres up.
+    movingFrom: 50,
+    movingChance: { min: 0.3, max: 0.65 }, // at `movingFrom`, and at `movingFrom + movingRamp`
+    movingRamp: 250,
+    movingRange: { min: 50, max: 130 }, // how far either side of its centre it travels
+    movingSpeed: { min: 0.7, max: 1.5 }, // radians per second through the swing
     reachSafety: 0.85, // share of the theoretical jump reach the generator relies on
     rampPlatforms: 120, // platforms until the difficulty maxes out
     // Difficulty blends from `easy` to `hard`. `riseMin`/`riseMax` are fractions of the
     // highest safe climb; `reachMax` caps how far sideways the next platform may sit.
-    easy: { widthMin: 100, widthMax: 160, riseMin: 0.65, riseMax: 0.85, reachMax: 0.85 },
-    hard: { widthMin: 56, widthMax: 96, riseMin: 0.85, riseMax: 1, reachMax: 1 },
+    easy: { widthMin: 100, widthMax: 160, riseMin: 0.55, riseMax: 0.75, reachMax: 0.85 },
+    hard: { widthMin: 56, widthMax: 96, riseMin: 0.75, riseMax: 0.95, reachMax: 1 },
   },
 
   score: {

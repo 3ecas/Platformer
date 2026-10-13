@@ -20,9 +20,6 @@ const State = Object.freeze({
   OVER: 'over', // the player fell; results appear after a beat
 });
 
-// Stands in for the keyboard whenever the player shouldn't move.
-const NO_INPUT = Object.freeze({ isDown: () => false, wasPressed: () => false });
-
 /** Wires every system together and runs the flow: ready → playing ⇄ paused → over → playing. */
 export class Game {
   constructor({ canvas, ui }) {
@@ -90,7 +87,7 @@ export class Game {
     this.state = State.PLAYING;
     this.screens.hide();
     this.setSlingshot(true);
-    this.input.endStep(); // the key that started the run shouldn't also jump
+    this.input.endStep();
   }
 
   pause() {
@@ -136,7 +133,7 @@ export class Game {
   update(dt) {
     switch (this.state) {
       case State.READY:
-        this.world.update(dt, NO_INPUT);
+        this.world.update(dt);
         if (this.input.wasPressed('confirm')) this.play();
         break;
 
@@ -145,8 +142,8 @@ export class Game {
           this.pause();
           break;
         }
-        this.world.update(dt, this.input, this.slingshot.takeRelease());
-        this.camera.follow(this.world.player, dt, this.world.creep);
+        this.world.update(dt, this.slingshot.takeRelease());
+        this.camera.follow(this.world.player, dt);
         if (this.score.setHeight(this.world.height)) this.hud.show(this.score);
         break;
 
@@ -155,7 +152,7 @@ export class Game {
         break;
 
       case State.OVER:
-        this.world.update(dt, NO_INPUT);
+        this.world.update(dt);
         this.camera.follow(this.world.player, dt); // lets the shake settle
         this.timeSinceFall += dt;
         if (!this.resultsShown && this.timeSinceFall >= CONFIG.gameOver.resultsDelay) {

@@ -244,6 +244,12 @@ body {
   background: linear-gradient(90deg, var(--platform-a), var(--platform-c));
 }
 
+.symbol--rail {
+  width: 2.2rem;
+  height: 0;
+  border-top: 2px dotted var(--marker);
+}
+
 .symbol--best {
   width: 2.2rem;
   height: 0;
