@@ -58,11 +58,11 @@ export const CONFIG = deepFreeze({
   },
 
   slingshot: {
-    // Press anywhere, pull back and release: the player flies the opposite way.
-    maxPull: 140, // world pixels of pull for a full-power shot
-    minPull: 14, // shorter pulls are ignored, so a stray click doesn't launch
+    // Press anywhere, drag the way you want to fly and release: a push.
+    maxPull: 140, // world pixels of drag for a full-power shot
+    minPull: 14, // shorter drags are ignored, so a stray click doesn't launch
     maxLaunch: 1050, // launch speed at full pull
-    previewTime: 1.1, // seconds of flight drawn as the aiming arc
+    previewTime: 0.4, // seconds of flight drawn as the aiming arc
   },
 
   platform: {

@@ -1,9 +1,9 @@
 /**
- * Mouse and touch slingshot.
+ * Mouse and touch launcher: a push, not a pull.
  *
- * Press anywhere on the canvas, drag back, and release: the launch points
- * away from the drag, and gets stronger the further you pull (up to
- * `maxPull`). Pulls shorter than `minPull` are ignored.
+ * Press anywhere on the canvas, drag the way you want to fly, and release:
+ * the launch follows the drag, and gets stronger the further you drag (up
+ * to `maxPull`). Drags shorter than `minPull` are ignored.
  */
 export class Slingshot {
   constructor(canvas, viewport, { maxPull, minPull, maxLaunch }) {
@@ -32,8 +32,8 @@ export class Slingshot {
   /** The launch the current pull would give: { vx, vy, strength (0–1), valid }. */
   get shot() {
     if (!this.aiming) return null;
-    const dx = this.start.x - this.current.x;
-    const dy = this.start.y - this.current.y;
+    const dx = this.current.x - this.start.x;
+    const dy = this.current.y - this.start.y;
     const length = Math.hypot(dx, dy);
     const pull = Math.min(length, this.maxPull);
     const scale = length > 0 ? (pull / length) * this.power : 0;

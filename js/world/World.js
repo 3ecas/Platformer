@@ -165,29 +165,16 @@ export class World {
     }
   }
 
-  /** The rubber band behind the player and the arc the launch would fly. */
+  /** A short dotted arc: the start of the flight the launch would give. */
   renderAim(ctx, theme, shot) {
     const { colors } = theme;
     const { player, jumpModel } = this;
     const ready = shot.valid && player.canLaunch;
-    const originX = player.centerX;
-    const originY = player.centerY;
 
-    // Band: drawn back from the player, opposite the launch.
-    const back = (shot.strength * CONFIG.slingshot.maxPull * 0.5) / Math.max(1, Math.hypot(shot.vx, shot.vy));
-    ctx.strokeStyle = colors.bestLine;
-    ctx.lineWidth = 3;
-    ctx.lineCap = 'round';
-    ctx.globalAlpha = 0.8;
-    ctx.beginPath();
-    ctx.moveTo(originX, originY);
-    ctx.lineTo(originX - shot.vx * back, originY - shot.vy * back);
-    ctx.stroke();
-
-    // Arc: the same gravity the player feels.
+    // The same gravity the player feels.
     let { vx, vy } = shot;
-    let x = originX;
-    let y = originY;
+    let x = player.centerX;
+    let y = player.centerY;
     const steps = Math.round(CONFIG.slingshot.previewTime / PREVIEW_STEP);
     ctx.fillStyle = ready ? colors.pickupText : colors.marker;
     for (let step = 1; step <= steps; step += 1) {
@@ -201,10 +188,9 @@ export class World {
       if (step % 2) continue;
       ctx.globalAlpha = (1 - step / steps) * (ready ? 0.9 : 0.4);
       ctx.beginPath();
-      ctx.arc(x, y, 3.2, 0, Math.PI * 2);
+      ctx.arc(x, y, 2.4, 0, Math.PI * 2);
       ctx.fill();
     }
     ctx.globalAlpha = 1;
-    ctx.lineCap = 'butt';
   }
 }
