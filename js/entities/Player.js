@@ -6,6 +6,7 @@ const SETTINGS = CONFIG.player;
 const SKIN = 0.5; // overlaps thinner than this count as touching, not colliding
 const QUARTER_TURN = Math.PI / 2;
 const PREDICT_STEP = 1 / 120;
+const TIP_SPEED = 90; // sideways nudge when the box tips off an edge
 const PREDICT_LIMIT = 5; // seconds of flight to look ahead before giving up
 const TRAIL_LIFE = 0.28; // seconds a trail ghost lingers
 const TRAIL_EVERY = 1 / 60; // seconds between ghosts
@@ -74,6 +75,7 @@ export class Player extends Entity {
 
     if (this.grounded && (!wasGrounded || this.ground !== previousGround)) this.land();
     // Airborne this step, by launching or by sliding off an edge: plan the tumble.
+    if (!this.grounded && wasGrounded && !this.jumped) this.tipOff(previousGround);
     if (!this.grounded && (this.jumped || wasGrounded)) this.planSpin(solids, bounds);
     this.animate(dt);
   }
@@ -132,7 +134,7 @@ export class Player extends Entity {
 
     let landing = null;
     for (const solid of solids) {
-      if (!this.overlapsHorizontally(solid)) continue;
+      if (!this.isSupportedBy(solid.left, solid.width, this.centerX)) continue;
       const crossed = previousBottom <= solid.top + SKIN && this.bottom >= solid.top;
       if (crossed && (!landing || solid.top < landing.top)) landing = solid;
     }
@@ -143,6 +145,21 @@ export class Player extends Entity {
     this.grounded = true;
     this.ground = landing;
     this.impact = clamp(speedBefore / SETTINGS.maxFallSpeed, 0, 1);
+  }
+
+  /**
+   * The box only rests on a platform while its centre is over it: with more
+   * than half of its base hanging past the edge, it falls.
+   */
+  isSupportedBy(left, width, centerX) {
+    return centerX >= left && centerX <= left + width;
+  }
+
+  /** Slid or was carried past an edge: tip outwards so it drops clear. */
+  tipOff(platform) {
+    if (!platform) return;
+    const outward = Math.sign(this.centerX - platform.centerX) || 1;
+    if (Math.sign(this.vx) !== outward || Math.abs(this.vx) < TIP_SPEED) this.vx = outward * TIP_SPEED;
   }
 
   /**
@@ -178,8 +195,8 @@ export class Player extends Entity {
 
       for (const solid of solids) {
         const left = solid.leftAfter(time);
-        const overlaps = x + width > left && x < left + solid.width;
-        if (overlaps && previousBottom <= solid.top + SKIN && bottom >= solid.top) return time;
+        const supported = this.isSupportedBy(left, solid.width, x + width / 2);
+        if (supported && previousBottom <= solid.top + SKIN && bottom >= solid.top) return time;
       }
     }
     return null;
