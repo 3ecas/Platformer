@@ -229,12 +229,6 @@ body {
   font-size: 2.4rem;
 }
 
-.sheet__lede {
-  max-width: 36ch;
-  margin: 0;
-  text-wrap: pretty;
-}
-
 .sheet__result {
   display: flex;
   flex-wrap: wrap;
