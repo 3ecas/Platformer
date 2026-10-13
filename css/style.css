@@ -58,17 +58,16 @@ body {
 .hud {
   --u: calc(var(--view-scale, 1) * 1px); /* one world pixel, in CSS pixels */
 
+  /* A small stack tucked into the top-left corner of the column. */
   position: absolute;
-  top: var(--view-top, 0px);
-  left: var(--view-left, 0px);
-  width: var(--view-width, 100%);
-  height: calc(var(--hud-height, 44) * var(--u));
+  top: calc(var(--view-top, 0px) + 12 * var(--u));
+  left: calc(var(--view-left, 0px) + 14 * var(--u));
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 calc(12 * var(--u));
+  flex-direction: column;
+  align-items: flex-start;
+  gap: calc(6 * var(--u));
   font-family: var(--font-data);
-  font-size: calc(16 * var(--u));
+  font-size: calc(12 * var(--u));
   line-height: 1;
   z-index: 2; /* the height readout stays in front, menus included */
 }
@@ -78,7 +77,7 @@ body {
   align-items: baseline;
   gap: 0.5em;
   margin: 0;
-  padding: 0.45em 0.85em;
+  padding: 0.45em 0.8em;
   background: var(--sheet);
   border: 1.5px solid var(--sheet-line);
   border-radius: 999px;
@@ -87,8 +86,8 @@ body {
 .hud__mute {
   display: grid;
   place-items: center;
-  width: calc(36 * var(--u));
-  height: calc(36 * var(--u));
+  width: calc(28 * var(--u));
+  height: calc(28 * var(--u));
   padding: 0;
   color: var(--text);
   background: var(--sheet);
@@ -166,8 +165,6 @@ body {
   display: grid;
   place-items: center;
   padding: 16px;
-  /* keep the sheet clear of the height readout above it */
-  padding-top: calc(var(--view-top, 0px) + var(--view-scale, 1) * 44px + 12px);
   overflow-y: auto;
   background: var(--scrim);
   pointer-events: auto;
@@ -183,6 +180,25 @@ body {
   background: var(--sheet);
   border: 1.5px solid var(--sheet-line);
   border-radius: 22px;
+}
+
+.sheet--centered {
+  justify-items: center;
+  text-align: center;
+}
+
+.sheet--centered .sheet__result,
+.sheet--centered .sheet__actions {
+  justify-content: center;
+}
+
+.sheet--centered .sheet__actions {
+  flex-direction: column;
+}
+
+.sheet--centered .tally {
+  justify-self: stretch;
+  text-align: left;
 }
 
 .sheet--compact {

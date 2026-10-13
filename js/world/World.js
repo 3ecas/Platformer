@@ -60,7 +60,7 @@ export class World {
     const bounds = { left: 0, right: this.width, bottom: this.abyss.top };
     player.update(dt, this.platforms, bounds, launch);
 
-    if (player.jumped) this.effects.jumpDust(player.centerX, player.bottom);
+    if (player.jumped) this.onLaunched();
     if (player.landedOn) this.onLanded(player.landedOn);
     if (player.bounced) this.onBounced(player.bounced);
     // Height counts where you stand, so a big jump that misses doesn't score.
@@ -85,6 +85,13 @@ export class World {
     this.events.emit(EVENTS.PLAYER_LANDED, player.impact);
     const firstTouch = platform.touch();
     if (firstTouch && platform.scores) this.events.emit(EVENTS.PLATFORM_LANDED, platform);
+  }
+
+  onLaunched() {
+    const { player } = this;
+    this.effects.jumpDust(player.centerX, player.bottom);
+    const speed = Math.hypot(player.vx, player.vy);
+    this.events.emit(EVENTS.PLAYER_LAUNCHED, Math.min(1, speed / CONFIG.slingshot.maxLaunch));
   }
 
   onBounced(speed) {
@@ -148,10 +155,10 @@ export class World {
     ctx.font = theme.font(13, 500);
     ctx.textBaseline = 'bottom';
     ctx.textAlign = 'left';
-    const hudBottom = camera.top + CONFIG.hud.height + 16;
+    const hudBottom = camera.top + CONFIG.hud.clearance;
     for (let index = first; index <= last; index += 1) {
       const y = this.startBottom - index * step;
-      if (y < hudBottom) continue; // the HUD owns the top strip
+      if (y < hudBottom) continue; // the readout owns the top-left corner
       ctx.fillStyle = colors.marker;
       ctx.fillRect(4, y - 1, 14, 2);
       ctx.fillText(`${index * markerEvery} m`, 22, y + 6);

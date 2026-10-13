@@ -1,15 +1,14 @@
 const BUMP = [{ transform: 'translateY(-18%) scale(1.2)' }, { transform: 'none' }];
 const BUMP_TIMING = { duration: 260, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' };
 
-/** The height readout along the top of the view. */
+/** The height and best readout in the top-left corner of the view. */
 export class Hud {
-  constructor(root, { height }) {
+  constructor(root) {
     this.fields = {
       height: root.querySelector('[data-hud="height"]'),
       best: root.querySelector('[data-hud="best"]'),
     };
     this.reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-    root.style.setProperty('--hud-height', String(height));
   }
 
   /** Writes the current numbers, giving a little bump to any that changed. */

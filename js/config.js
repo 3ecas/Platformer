@@ -41,7 +41,7 @@ export const CONFIG = deepFreeze({
   },
 
   hud: {
-    height: 44,
+    clearance: 120, // world pixels under the top-left readout kept free of wall markers
   },
 
   player: {

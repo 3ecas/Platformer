@@ -39,7 +39,7 @@ export class Game {
     this.random = new Random();
     this.world = new World({ camera: this.camera, events: this.events, random: this.random });
     this.score = new Score();
-    this.hud = new Hud(ui.querySelector('[data-hud]'), CONFIG.hud);
+    this.hud = new Hud(ui.querySelector('[data-hud]'));
     this.muteButton = ui.querySelector('[data-action="mute"]');
     this.muteButton.addEventListener('click', () => this.toggleMute());
     this.showMuted();
@@ -65,10 +65,14 @@ export class Game {
   }
 
   listen() {
+    this.events.on(EVENTS.PLAYER_LAUNCHED, (strength) => this.sound.whoosh(strength));
     this.events.on(EVENTS.PLAYER_LANDED, (impact) => this.sound.land(impact));
     this.events.on(EVENTS.PLAYER_BOUNCED, (strength) => this.sound.bounce(strength));
     this.events.on(EVENTS.PLATFORM_LANDED, () => this.score.addPlatform());
-    this.events.on(EVENTS.PLAYER_FELL, () => this.endRun());
+    this.events.on(EVENTS.PLAYER_FELL, () => {
+      this.sound.lose();
+      this.endRun();
+    });
 
     // Stop the clock whenever the player looks away.
     window.addEventListener('blur', () => this.pause());

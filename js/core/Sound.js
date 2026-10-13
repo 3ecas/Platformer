@@ -12,6 +12,7 @@ export class Sound {
     this.context = null;
     this.master = null;
     this.muted = readMuted();
+    this.noise = null; // one second of white noise, shared by every whoosh
     const unlock = () => this.unlock();
     window.addEventListener('pointerdown', unlock, { capture: true });
     window.addEventListener('keydown', unlock, { capture: true });
@@ -70,6 +71,60 @@ export class Sound {
     const pitch = 880 * (0.95 + Math.random() * 0.1);
     const volume = 0.08 + 0.2 * strength;
     this.tone({ type: 'triangle', from: pitch, to: pitch * 0.7, start: now, length: 0.07, volume });
+  }
+
+  /**
+   * The "fshiuuu" of a launch: a burst of noise through a band-pass filter
+   * that sweeps from hiss down to a softer rush. `strength` (0–1) makes it
+   * louder and a little longer.
+   */
+  whoosh(strength) {
+    if (!this.playing) return;
+    const { context } = this;
+    const now = context.currentTime;
+    const length = 0.28 + 0.22 * strength;
+
+    const source = context.createBufferSource();
+    source.buffer = this.noiseBuffer();
+    const filter = context.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.Q.value = 1.4;
+    filter.frequency.setValueAtTime(3200, now);
+    filter.frequency.exponentialRampToValueAtTime(650, now + length);
+    const gain = context.createGain();
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.12 + 0.4 * strength, now + 0.04);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + length);
+
+    source.connect(filter).connect(gain).connect(this.master);
+    source.start(now);
+    source.stop(now + length + 0.02);
+  }
+
+  /** A gentle "wah-wah-waaah": three falling notes, the last one sagging. */
+  lose() {
+    if (!this.playing) return;
+    const now = this.context.currentTime;
+    const notes = [
+      { from: 523, to: 515, at: 0, length: 0.2 },
+      { from: 440, to: 432, at: 0.2, length: 0.2 },
+      { from: 370, to: 262, at: 0.4, length: 0.6 },
+    ];
+    for (const note of notes) {
+      const start = now + note.at;
+      this.tone({ type: 'triangle', from: note.from, to: note.to, start, length: note.length, volume: 0.25 });
+      this.tone({ type: 'sine', from: note.from / 2, to: note.to / 2, start, length: note.length, volume: 0.12 });
+    }
+  }
+
+  noiseBuffer() {
+    if (!this.noise) {
+      const { sampleRate } = this.context;
+      this.noise = this.context.createBuffer(1, sampleRate, sampleRate);
+      const samples = this.noise.getChannelData(0);
+      for (let index = 0; index < samples.length; index += 1) samples[index] = Math.random() * 2 - 1;
+    }
+    return this.noise;
   }
 
   tone({ type, from, to, start, length, volume }) {
