@@ -29,6 +29,7 @@ export class Player extends Entity {
 
     // Set for a single step; the world reacts to them after each update.
     this.jumped = false;
+    this.bounced = 0; // speed of a wall bounce this step, or 0
     this.landedOn = null;
     this.impact = 0; // 0–1: how hard the latest landing was
 
@@ -64,6 +65,7 @@ export class Player extends Entity {
     const previousGround = this.ground;
     this.jumped = false;
     this.landedOn = null;
+    this.bounced = 0;
 
     this.coyoteTimer = this.grounded ? SETTINGS.coyoteTime : this.coyoteTimer - dt;
     if (launch) this.sling(launch);
@@ -74,9 +76,9 @@ export class Player extends Entity {
     this.moveY(dt, solids);
 
     if (this.grounded && (!wasGrounded || this.ground !== previousGround)) this.land();
-    // Airborne this step, by launching or by sliding off an edge: plan the tumble.
     if (!this.grounded && wasGrounded && !this.jumped) this.tipOff(previousGround);
-    if (!this.grounded && (this.jumped || wasGrounded)) this.planSpin(solids, bounds);
+    // Airborne this step by launching, leaving an edge or bouncing off a wall: (re)plan the tumble.
+    if (!this.grounded && (this.jumped || wasGrounded || this.bounced)) this.planSpin(solids, bounds);
     this.animate(dt);
   }
 
@@ -111,16 +113,11 @@ export class Player extends Entity {
     if (this.grounded) this.x += this.ground.x - this.ground.prevX;
   }
 
-  /** Platforms are open at the sides, so only the walls stop sideways movement. */
+  /** Platforms are open at the sides, so only the walls get in the way, and the box bounces off them. */
   moveX(dt, bounds) {
-    this.x += this.vx * dt;
-    if (this.x < bounds.left) {
-      this.x = bounds.left;
-      this.vx = Math.max(this.vx, 0);
-    } else if (this.right > bounds.right) {
-      this.x = bounds.right - this.width;
-      this.vx = Math.min(this.vx, 0);
-    }
+    const before = this.vx;
+    [this.x, this.vx] = bounceOffWalls(this.x + this.vx * dt, this.vx, this.width, bounds);
+    if (before !== 0 && Math.sign(this.vx) === -Math.sign(before)) this.bounced = Math.abs(before);
   }
 
   /** Lands on the highest platform the feet crossed on the way down; launches pass up through them. */
@@ -164,7 +161,7 @@ export class Player extends Entity {
 
   /**
    * Flies the same physics forward to find when the box will land, then picks
-   * a spin that completes a whole number of quarter turns by then.
+   * a spin, rolling the way it travels, that ends on a whole quarter turn by then.
    */
   planSpin(solids, bounds) {
     const direction = Math.sign(this.vx) || 1;
@@ -173,8 +170,9 @@ export class Player extends Entity {
       this.spin = direction * SETTINGS.spinRate; // heading off the bottom: just tumble
       return;
     }
-    const turns = Math.round((SETTINGS.spinRate * flightTime) / QUARTER_TURN);
-    this.spin = (direction * turns * QUARTER_TURN) / flightTime;
+    const roughEnd = this.angle + direction * SETTINGS.spinRate * flightTime;
+    const end = Math.round(roughEnd / QUARTER_TURN) * QUARTER_TURN;
+    this.spin = (end - this.angle) / flightTime;
   }
 
   /** Seconds until the next landing, or null if the box falls out of the view first. */
@@ -184,8 +182,7 @@ export class Player extends Entity {
     for (let time = PREDICT_STEP; time <= PREDICT_LIMIT; time += PREDICT_STEP) {
       vy = this.gravityStep(vy, PREDICT_STEP);
       x += vx * PREDICT_STEP;
-      if (x < bounds.left) [x, vx] = [bounds.left, Math.max(vx, 0)];
-      else if (x + width > bounds.right) [x, vx] = [bounds.right - width, Math.min(vx, 0)];
+      [x, vx] = bounceOffWalls(x, vx, width, bounds);
 
       const previousBottom = y + height;
       y += vy * PREDICT_STEP;
@@ -258,4 +255,14 @@ export class Player extends Entity {
     ctx.fillRect(-width / 2, this.height / 2 - height, width, height);
     ctx.restore();
   }
+}
+
+/**
+ * Keeps a box between the walls. Hitting one reflects the sideways speed,
+ * scaled down by `wallBounce`, so a bounce never adds speed.
+ */
+function bounceOffWalls(x, vx, width, bounds) {
+  if (x < bounds.left) return [bounds.left, Math.abs(vx) * SETTINGS.wallBounce];
+  if (x + width > bounds.right) return [bounds.right - width, -Math.abs(vx) * SETTINGS.wallBounce];
+  return [x, vx];
 }

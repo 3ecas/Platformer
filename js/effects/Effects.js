@@ -25,6 +25,13 @@ export class Effects {
     this.sidePuffs(x, y, 3 + Math.round(impact * 6), 80 + 170 * impact);
   }
 
+  /** A small puff off a wall; `away` is +1 (into the room from the left wall) or −1. */
+  wallDust(x, y, away) {
+    const angle = away > 0 ? 0 : Math.PI;
+    const spray = { angleMin: angle - 0.9, angleMax: angle + 0.9, speedMin: 50, speedMax: 150 };
+    this.burst({ x, y, count: 6, colorKey: 'dust', ...spray, sizeMin: 2, sizeMax: 4, life: 0.3, drag: 5 });
+  }
+
   /** A little "+25 m" pop-up each time the climb passes a height marker. */
   milestone(x, y, meters) {
     this.burst({ x, y, count: 10, colorKey: 'dust', speedMin: 60, speedMax: 180, life: 0.5, drag: 4 });

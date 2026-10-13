@@ -14,6 +14,13 @@
         <span class="hud__label">Height</span>
         <span class="hud__value"><span data-hud="height">0</span><span class="hud__unit">m</span></span>
       </p>
+      <button class="hud__mute" type="button" data-action="mute" aria-pressed="false" aria-label="Sound on. Turn sound off">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+          <path class="hud__speaker" d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" />
+          <path class="hud__waves" d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11" />
+          <path class="hud__cross" d="M15.5 9.5l5 5M20.5 9.5l-5 5" />
+        </svg>
+      </button>
       <p class="hud__field">
         <span class="hud__label">Best</span>
         <span class="hud__value"><span data-hud="best">0</span><span class="hud__unit">m</span></span>
@@ -46,7 +53,7 @@
 
         <ul class="keys">
           <li><kbd>Drag</kbd> the way you want to fly, then release. A longer drag flies further.</li>
-          <li><kbd>Esc</kbd> pause</li>
+          <li><kbd>Esc</kbd> pause, <kbd>M</kbd> mute</li>
         </ul>
 
         <div class="sheet__actions">

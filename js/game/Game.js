@@ -40,6 +40,9 @@ export class Game {
     this.world = new World({ camera: this.camera, events: this.events, random: this.random });
     this.score = new Score();
     this.hud = new Hud(ui.querySelector('[data-hud]'), CONFIG.hud);
+    this.muteButton = ui.querySelector('[data-action="mute"]');
+    this.muteButton.addEventListener('click', () => this.toggleMute());
+    this.showMuted();
     this.screens = new Screens(ui, { onPlay: () => this.play(), onResume: () => this.resume() });
     this.loop = new GameLoop({
       ...CONFIG.loop,
@@ -63,6 +66,7 @@ export class Game {
 
   listen() {
     this.events.on(EVENTS.PLAYER_LANDED, (impact) => this.sound.land(impact));
+    this.events.on(EVENTS.PLAYER_BOUNCED, (strength) => this.sound.bounce(strength));
     this.events.on(EVENTS.PLATFORM_LANDED, () => this.score.addPlatform());
     this.events.on(EVENTS.PLAYER_FELL, () => this.endRun());
 
@@ -133,7 +137,19 @@ export class Game {
     });
   }
 
+  toggleMute() {
+    this.sound.toggleMute();
+    this.showMuted();
+  }
+
+  showMuted() {
+    const { muted } = this.sound;
+    this.muteButton.setAttribute('aria-pressed', String(muted));
+    this.muteButton.setAttribute('aria-label', muted ? 'Sound off. Turn sound on' : 'Sound on. Turn sound off');
+  }
+
   update(dt) {
+    if (this.input.wasPressed('mute')) this.toggleMute();
     switch (this.state) {
       case State.READY:
         this.world.update(dt);

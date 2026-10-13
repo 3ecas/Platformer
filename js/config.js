@@ -28,6 +28,7 @@ export const CONFIG = deepFreeze({
   controls: {
     confirm: ['Space', 'Enter'],
     pause: ['Escape', 'KeyP'],
+    mute: ['KeyM'],
   },
 
   camera: {
@@ -55,6 +56,7 @@ export const CONFIG = deepFreeze({
     maxFallSpeed: 1200,
     coyoteTime: 0.1, // grace period to launch after sliding off an edge
     spinRate: 9, // radians per second the box aims to tumble in the air
+    wallBounce: 0.75, // share of sideways speed kept when bouncing off a wall (never above 1)
   },
 
   slingshot: {

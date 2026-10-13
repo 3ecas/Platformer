@@ -84,6 +84,52 @@ body {
   border-radius: 999px;
 }
 
+.hud__mute {
+  display: grid;
+  place-items: center;
+  width: calc(36 * var(--u));
+  height: calc(36 * var(--u));
+  padding: 0;
+  color: var(--text);
+  background: var(--sheet);
+  border: 1.5px solid var(--sheet-line);
+  border-radius: 50%;
+  cursor: pointer;
+  pointer-events: auto; /* the rest of the HUD lets clicks through to the game */
+}
+
+.hud__mute:hover {
+  background: var(--accent-strong);
+}
+
+.hud__mute:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.hud__mute svg {
+  width: 55%;
+  height: 55%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.hud__speaker {
+  fill: currentColor;
+}
+
+.hud__cross,
+.hud__mute[aria-pressed='true'] .hud__waves {
+  display: none;
+}
+
+.hud__mute[aria-pressed='true'] .hud__cross {
+  display: inline;
+}
+
 .hud__label {
   font-size: 0.72em;
   font-weight: 600;

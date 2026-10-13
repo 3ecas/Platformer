@@ -62,6 +62,7 @@ export class World {
 
     if (player.jumped) this.effects.jumpDust(player.centerX, player.bottom);
     if (player.landedOn) this.onLanded(player.landedOn);
+    if (player.bounced) this.onBounced(player.bounced);
     // Height counts where you stand, so a big jump that misses doesn't score.
     if (player.grounded) this.climb(this.startBottom - player.bottom);
     if (this.abyss.hasSwallowed(player)) this.onFell();
@@ -84,6 +85,13 @@ export class World {
     this.events.emit(EVENTS.PLAYER_LANDED, player.impact);
     const firstTouch = platform.touch();
     if (firstTouch && platform.scores) this.events.emit(EVENTS.PLATFORM_LANDED, platform);
+  }
+
+  onBounced(speed) {
+    const { player } = this;
+    const wallX = player.centerX < this.width / 2 ? player.left : player.right;
+    this.effects.wallDust(wallX, player.centerY, Math.sign(this.width / 2 - wallX));
+    this.events.emit(EVENTS.PLAYER_BOUNCED, Math.min(1, speed / CONFIG.slingshot.maxLaunch));
   }
 
   onFell() {
