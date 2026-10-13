@@ -1,0 +1,373 @@
+/*
+ * Page layout, the HUD and the overlay screens.
+ * Colours and fonts are tokens from theme.css.
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: var(--page-bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/* Stage: the canvas, with the interface layered over it -------------------- */
+
+.stage {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.stage__canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none; /* the slingshot owns drags */
+  cursor: crosshair;
+}
+
+.ui {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* HUD: two soft chips along the top of the column ------------------------- */
+
+.hud {
+  --u: calc(var(--view-scale, 1) * 1px); /* one world pixel, in CSS pixels */
+
+  position: absolute;
+  top: var(--view-top, 0px);
+  left: var(--view-left, 0px);
+  width: var(--view-width, 100%);
+  height: calc(var(--hud-height, 44) * var(--u));
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 calc(12 * var(--u));
+  font-family: var(--font-data);
+  font-size: calc(16 * var(--u));
+  line-height: 1;
+}
+
+.hud__field {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5em;
+  margin: 0;
+  padding: 0.45em 0.85em;
+  background: var(--sheet);
+  border: 1.5px solid var(--sheet-line);
+  border-radius: 999px;
+}
+
+.hud__label {
+  font-size: 0.72em;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.hud__value {
+  font-size: 1.25em;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.hud__value [data-hud] {
+  display: inline-block; /* lets the bump animation transform it */
+  min-width: 1ch;
+  text-align: right;
+}
+
+.hud__unit {
+  margin-left: 0.15em;
+  font-size: 0.7em;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* Screens: start, pause and results ---------------------------------------- */
+
+.screen {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  overflow-y: auto;
+  background: var(--scrim);
+  pointer-events: auto;
+}
+
+.sheet {
+  display: grid;
+  gap: 1.1rem;
+  width: min(100%, 26rem);
+  padding: 1.75rem;
+  color: var(--text);
+  background: var(--sheet);
+  border: 1.5px solid var(--sheet-line);
+  border-radius: 22px;
+}
+
+.sheet--compact {
+  width: min(100%, 19rem);
+}
+
+.sheet__eyebrow {
+  margin: 0;
+  font-family: var(--font-data);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.sheet__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(2.6rem, 11vw, 3.6rem);
+  font-weight: 700;
+  line-height: 0.95;
+  color: var(--text);
+  text-wrap: balance;
+}
+
+.sheet__title--small {
+  font-size: 2.4rem;
+}
+
+.sheet__lede {
+  max-width: 36ch;
+  margin: 0;
+  text-wrap: pretty;
+}
+
+.sheet__result {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem 1rem;
+}
+
+.sheet__score {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(4rem, 17vw, 5.5rem);
+  font-weight: 700;
+  line-height: 0.85;
+  font-variant-numeric: tabular-nums;
+}
+
+.sheet__unit {
+  margin-left: 0.1em;
+  font-size: 0.4em;
+  color: var(--text-muted);
+}
+
+.sheet__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem 1rem;
+  margin-top: 0.25rem;
+}
+
+/* Legend ------------------------------------------------------------------- */
+
+.legend {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0;
+  padding-block: 0.9rem;
+  border-block: 1px solid var(--rule);
+}
+
+.legend__row {
+  display: grid;
+  grid-template-columns: 2.2rem 1fr;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.legend dt,
+.legend dd {
+  margin: 0;
+}
+
+.legend dt {
+  display: grid;
+  place-items: center;
+}
+
+.symbol {
+  display: block;
+}
+
+.symbol--player {
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 3px;
+  background: var(--player);
+}
+
+.symbol--platform {
+  width: 2.2rem;
+  height: 0.6rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--platform-a), var(--platform-c));
+}
+
+.symbol--best {
+  width: 2.2rem;
+  height: 0;
+  border-top: 2px dashed var(--best-line);
+}
+
+/* Keys ---------------------------------------------------------------------- */
+
+.keys {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--text-muted);
+}
+
+.keys__combo {
+  display: inline-flex;
+  gap: 0.2rem;
+}
+
+kbd {
+  display: inline-block;
+  min-width: 1.7em;
+  padding: 0.15em 0.45em;
+  font-family: var(--font-data);
+  font-size: 0.85em;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+  color: var(--text);
+  background: var(--column);
+  border: 1px solid var(--sheet-line);
+  border-bottom-width: 2px;
+  border-radius: 6px;
+}
+
+/* Results tally ------------------------------------------------------------- */
+
+.tally {
+  margin: 0;
+  border-top: 1px solid var(--rule);
+}
+
+.tally__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  padding-block: 0.5rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.tally dt {
+  font-family: var(--font-data);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.tally dd {
+  margin: 0;
+  font-family: var(--font-data);
+  font-size: 1.2rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.badge {
+  margin: 0 0 0.35rem;
+  padding: 0.3rem 0.7rem;
+  font-family: var(--font-data);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--on-accent);
+  background: var(--accent-strong);
+  border-radius: 999px;
+}
+
+/* Controls ------------------------------------------------------------------ */
+
+.button {
+  padding: 0.8rem 1.5rem;
+  font-family: var(--font-data);
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--button-text);
+  background: var(--button);
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  transition:
+    background-color 120ms ease,
+    transform 120ms ease;
+}
+
+.button:hover {
+  color: var(--on-accent);
+  background: var(--accent-strong);
+}
+
+.button:active {
+  transform: translateY(1px);
+}
+
+.button:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+
+.hint {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button {
+    transition: none;
+  }
+}

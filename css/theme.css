@@ -1,0 +1,49 @@
+/*
+ * Colour and type tokens. The canvas reads these too (js/core/Theme.js),
+ * so this file is the one place to change how the game looks.
+ *
+ * One deliberate look: soft pastels on a pale lilac column, in every theme.
+ * Canvas colours use rgba() with commas so every browser's canvas parses them.
+ */
+
+:root {
+  color-scheme: light;
+
+  --font-display: 'Fredoka', 'Nunito', 'Trebuchet MS', sans-serif;
+  --font-body: 'Nunito', 'Trebuchet MS', 'Helvetica Neue', sans-serif;
+  --font-data: 'Fredoka', 'Nunito', 'Trebuchet MS', sans-serif;
+
+  /* Page and interface */
+  --page-bg: #efe9f6;
+  --sheet: #fffafc;
+  --sheet-line: #d9cdea;
+  --rule: rgba(150, 128, 186, 0.22);
+  --text: #5d5372;
+  --text-muted: #9a90ab;
+  --scrim: rgba(239, 233, 246, 0.55);
+  --focus: #b8a4e3;
+  --accent-strong: #c9b6f0;
+  --on-accent: #4f4566;
+  --button: #f7c6d4;
+  --button-text: #5d5372;
+
+  /* The climb */
+  --column: #fbf8ff;
+  --wall: rgba(185, 168, 220, 0.35);
+  --marker: rgba(154, 144, 171, 0.45);
+  --best-line: #f2b8c6;
+  --platform-a: #bfe6d3; /* mint */
+  --platform-b: #f7c6d4; /* blush */
+  --platform-c: #c9daf5; /* sky */
+  --platform-d: #f8dfb6; /* peach */
+  --platform-edge: rgba(93, 83, 114, 0.12);
+  --warn: #f4a6b4;
+  --void: rgba(201, 182, 240, 0.55);
+  --void-clear: rgba(201, 182, 240, 0);
+  --dust: rgba(185, 168, 220, 0.7);
+
+  /* Actor */
+  --player: #f6b8a2;
+  --player-eye: #5d5372;
+  --pickup-text: #a58fd6;
+}

@@ -1,0 +1,93 @@
+<title>Pastel Climb</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&amp;family=Nunito:wght@400;600;700&amp;display=swap">
+<link rel="stylesheet" href="css/theme.css">
+<link rel="stylesheet" href="css/style.css">
+<script type="module" src="js/main.js"></script>
+<main class="stage">
+  <canvas class="stage__canvas" id="game" aria-label="Pastel Climb game view"></canvas>
+
+  <div class="ui" id="ui">
+    <header class="hud" data-hud>
+      <p class="hud__field">
+        <span class="hud__label">Height</span>
+        <span class="hud__value"><span data-hud="height">0</span><span class="hud__unit">m</span></span>
+      </p>
+      <p class="hud__field">
+        <span class="hud__label">Best</span>
+        <span class="hud__value"><span data-hud="best">0</span><span class="hud__unit">m</span></span>
+      </p>
+    </header>
+
+    <section class="screen" data-screen="start" aria-labelledby="start-title">
+      <div class="sheet">
+        <h1 class="sheet__title" id="start-title">Pastel Climb</h1>
+        <p class="sheet__lede">Climb as high as you can. Every platform crumbles a moment after you land on it, and the view keeps drifting upward, so don't stand still. Drop out of the bottom and the climb is over.</p>
+
+        <dl class="legend">
+          <div class="legend__row">
+            <dt><span class="symbol symbol--player"></span></dt>
+            <dd>You</dd>
+          </div>
+          <div class="legend__row">
+            <dt><span class="symbol symbol--platform"></span></dt>
+            <dd>Platform: jump up through it, land on top</dd>
+          </div>
+          <div class="legend__row">
+            <dt><span class="symbol symbol--best"></span></dt>
+            <dd>Your best height so far</dd>
+          </div>
+        </dl>
+
+        <ul class="keys">
+          <li><span class="keys__combo"><kbd>Drag</kbd></span> pull back and release to slingshot</li>
+          <li><span class="keys__combo"><kbd>←</kbd><kbd>→</kbd></span> or <span class="keys__combo"><kbd>A</kbd><kbd>D</kbd></span> move</li>
+          <li><kbd>Space</kbd> or <kbd>↑</kbd> jump, hold for more height</li>
+          <li><kbd>Esc</kbd> pause</li>
+        </ul>
+
+        <div class="sheet__actions">
+          <button class="button" type="button" data-action="play">Start climbing</button>
+          <p class="hint">or press <kbd>Space</kbd></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" data-screen="pause" aria-labelledby="pause-title" hidden>
+      <div class="sheet sheet--compact">
+        <h2 class="sheet__title sheet__title--small" id="pause-title">Paused</h2>
+        <div class="sheet__actions">
+          <button class="button" type="button" data-action="resume">Resume</button>
+          <p class="hint">or press <kbd>Esc</kbd></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" data-screen="over" aria-labelledby="over-title" hidden>
+      <div class="sheet">
+        <p class="sheet__eyebrow" id="over-title">You fell. You reached</p>
+        <div class="sheet__result">
+          <p class="sheet__score"><span data-field="height">0</span><span class="sheet__unit">m</span></p>
+          <p class="badge" data-new-best hidden>New best</p>
+        </div>
+
+        <dl class="tally">
+          <div class="tally__row">
+            <dt>Platforms</dt>
+            <dd data-field="platforms">0</dd>
+          </div>
+          <div class="tally__row">
+            <dt>Best</dt>
+            <dd><span data-field="best">0</span> m</dd>
+          </div>
+        </dl>
+
+        <div class="sheet__actions">
+          <button class="button" type="button" data-action="play">Climb again</button>
+          <p class="hint">or press <kbd>Space</kbd></p>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
