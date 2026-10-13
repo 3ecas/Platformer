@@ -192,12 +192,18 @@ body {
   justify-content: center;
 }
 
+.sheet--centered .sheet__result,
 .sheet--centered .sheet__actions {
   flex-direction: column;
+  align-items: center;
+}
+
+.sheet--centered .badge {
+  margin: 0;
 }
 
 .sheet--centered .tally {
-  justify-self: stretch;
+  width: min(100%, 12rem);
   text-align: left;
 }
 
