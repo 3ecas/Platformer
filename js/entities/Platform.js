@@ -58,22 +58,18 @@ export class Platform extends Entity {
       ctx.lineCap = 'round';
       ctx.setLineDash([2, 8]);
       ctx.beginPath();
-      ctx.moveTo(this.homeX - this.range + height / 2, railY);
-      ctx.lineTo(this.homeX + this.range + width - height / 2, railY);
+      ctx.moveTo(this.homeX - this.range, railY);
+      ctx.lineTo(this.homeX + this.range + width, railY);
       ctx.stroke();
       ctx.setLineDash([]);
       ctx.lineCap = 'butt';
     }
 
     ctx.fillStyle = colors[this.colorKey];
-    ctx.beginPath();
-    ctx.roundRect(x, y, width, height, Math.min(height / 2, 9));
-    ctx.fill();
+    ctx.fillRect(x, y, width, height);
 
-    // A soft shadow line along the underside gives the pill a little depth.
+    // A soft shadow band along the underside gives the slab a little depth.
     ctx.fillStyle = colors.platformEdge;
-    ctx.beginPath();
-    ctx.roundRect(x + 3, y + height - 4, width - 6, 4, 2);
-    ctx.fill();
+    ctx.fillRect(x, y + height - 4, width, 4);
   }
 }

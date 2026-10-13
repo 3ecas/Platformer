@@ -210,10 +210,8 @@ export class Player extends Entity {
     ctx.translate(this.centerX, this.centerY);
     ctx.rotate(this.angle);
     ctx.fillStyle = theme.colors.player;
-    ctx.beginPath();
     // Squash and stretch from the feet.
-    ctx.roundRect(-width / 2, this.height / 2 - height, width, height, 5);
-    ctx.fill();
+    ctx.fillRect(-width / 2, this.height / 2 - height, width, height);
     ctx.restore();
   }
 }

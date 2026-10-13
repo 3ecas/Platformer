@@ -233,14 +233,12 @@ body {
 .symbol--player {
   width: 0.85rem;
   height: 0.85rem;
-  border-radius: 3px;
   background: var(--player);
 }
 
 .symbol--platform {
   width: 2.2rem;
   height: 0.6rem;
-  border-radius: 999px;
   background: linear-gradient(90deg, var(--platform-a), var(--platform-c));
 }
 
