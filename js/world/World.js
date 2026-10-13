@@ -81,6 +81,7 @@ export class World {
   onLanded(platform) {
     const { player } = this;
     this.effects.landingDust(player.centerX, player.bottom, player.impact);
+    this.events.emit(EVENTS.PLAYER_LANDED, player.impact);
     const firstTouch = platform.touch();
     if (firstTouch && platform.scores) this.events.emit(EVENTS.PLATFORM_LANDED, platform);
   }
@@ -139,8 +140,10 @@ export class World {
     ctx.font = theme.font(13, 500);
     ctx.textBaseline = 'bottom';
     ctx.textAlign = 'left';
+    const hudBottom = camera.top + CONFIG.hud.height + 16;
     for (let index = first; index <= last; index += 1) {
       const y = this.startBottom - index * step;
+      if (y < hudBottom) continue; // the HUD owns the top strip
       ctx.fillStyle = colors.marker;
       ctx.fillRect(4, y - 1, 14, 2);
       ctx.fillText(`${index * markerEvery} m`, 22, y + 6);

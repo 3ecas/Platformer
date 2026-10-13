@@ -5,6 +5,7 @@ import { EventBus } from '../core/EventBus.js';
 import { GameLoop } from '../core/GameLoop.js';
 import { Input } from '../core/Input.js';
 import { Slingshot } from '../core/Slingshot.js';
+import { Sound } from '../core/Sound.js';
 import { Theme } from '../core/Theme.js';
 import { Viewport } from '../core/Viewport.js';
 import { Hud } from '../ui/Hud.js';
@@ -34,6 +35,7 @@ export class Game {
     this.input = new Input(CONFIG.controls);
     this.slingshot = new Slingshot(canvas, this.viewport, CONFIG.slingshot);
     this.events = new EventBus();
+    this.sound = new Sound();
     this.random = new Random();
     this.world = new World({ camera: this.camera, events: this.events, random: this.random });
     this.score = new Score();
@@ -60,6 +62,7 @@ export class Game {
   }
 
   listen() {
+    this.events.on(EVENTS.PLAYER_LANDED, (impact) => this.sound.land(impact));
     this.events.on(EVENTS.PLATFORM_LANDED, () => this.score.addPlatform());
     this.events.on(EVENTS.PLAYER_FELL, () => this.endRun());
 
