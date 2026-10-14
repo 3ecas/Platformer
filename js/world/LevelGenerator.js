@@ -65,7 +65,7 @@ export class LevelGenerator {
     // A lift can carry a standing player up into the middle of the gap, so keep gaps beside lifts clear.
     const nextToLift = isLift(platform) || isLift(this.last);
     const thorn = nextToLift ? null : this.pickThorn(this.last.homeY, top);
-    const flamer = nextToLift || thorn ? null : this.pickFlamer(this.last.homeY, top);
+    const flamer = nextToLift || thorn ? null : this.pickFlamer(this.last, platform);
 
     this.last = platform;
     this.count += 1;
@@ -92,15 +92,32 @@ export class LevelGenerator {
     return this.random.chance(0.5) ? { from: 0, to: length } : { from: width - length, to: width };
   }
 
-  /** A flamethrower on one wall, firing across part of the gap between two platforms. */
-  pickFlamer(lowerTop, upperTop) {
-    const ramp = this.obstacleRamp(upperTop, RULES.flamesFrom);
+  /**
+   * A flamethrower across the gap between two platforms, placed so it blocks
+   * the way up: every jump from the lower platform to the upper one has to
+   * pass its height, and the jet reaches from the nearer wall past the far
+   * end of the stretch between the two platforms. So the player has to time
+   * the jump for when it's off.
+   */
+  pickFlamer(lower, upper) {
+    const ramp = this.obstacleRamp(upper.homeY, RULES.flamesFrom);
     if (ramp < 0 || !this.random.chance(lerp(RULES.flamesChance.min, RULES.flamesChance.max, ramp))) return null;
     const range = (key) => this.random.range(RULES[key].min, RULES[key].max);
+
+    // The stretch a jump between the two crosses, widened by any sideways swing.
+    const swing = (platform) => (platform.moving && platform.axis === 'x' ? platform.range : 0);
+    const centers = [lower.homeX + lower.width / 2, upper.homeX + upper.width / 2];
+    const margin = RULES.flameCoverMargin + Math.max(swing(lower), swing(upper));
+    const pathLeft = Math.min(...centers) - margin;
+    const pathRight = Math.max(...centers) + margin;
+    const side = (pathLeft + pathRight) / 2 < this.viewWidth / 2 ? 'left' : 'right';
+    const reachNeeded = side === 'left' ? pathRight : this.viewWidth - pathLeft;
+    const length = clamp(reachNeeded, RULES.flameLength.min, this.viewWidth - RULES.flameFarGap);
+
     return new Flamer({
-      side: this.random.chance(0.5) ? 'left' : 'right',
-      y: (lowerTop + upperTop) / 2,
-      length: range('flameLength'),
+      side,
+      y: (lower.homeY + upper.homeY) / 2,
+      length,
       viewWidth: this.viewWidth,
       offTime: range('flameOffTime'),
       warnTime: RULES.flameWarnTime,

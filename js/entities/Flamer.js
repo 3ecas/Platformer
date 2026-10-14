@@ -1,6 +1,6 @@
 const NOZZLE = { width: 10, height: 18 };
 const JET_HALF_HEIGHT = 9; // the flame's danger zone reaches this far above and below its line
-const PARTICLES_PER_SECOND = 170;
+const PARTICLES_PER_PIXEL = 0.7; // puffs per second for each pixel of jet, so long jets stay as dense as short ones
 const PARTICLE_LIFE = 0.42;
 
 const Phase = Object.freeze({ OFF: 'off', WARN: 'warn', ON: 'on' });
@@ -46,7 +46,8 @@ export class Flamer {
     const { phase } = this;
 
     // Full jet when on; a weak sputter at the nozzle while warning.
-    const rate = phase === Phase.ON ? PARTICLES_PER_SECOND : phase === Phase.WARN ? PARTICLES_PER_SECOND * 0.25 : 0;
+    const full = PARTICLES_PER_PIXEL * this.length;
+    const rate = phase === Phase.ON ? full : phase === Phase.WARN ? Math.min(full * 0.25, 45) : 0;
     this.emitDebt += rate * dt;
     while (this.emitDebt >= 1) {
       this.emitDebt -= 1;
