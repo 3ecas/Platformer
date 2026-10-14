@@ -2,7 +2,8 @@
  * Every tunable number in the game lives here.
  *
  * Units are world pixels and seconds. The view is a fixed column,
- * `view.width` × `view.height` world pixels, scaled to fit the window.
+ * `view.width` world pixels wide and `view.minHeight`–`view.maxHeight` tall,
+ * scaled to fit the window.
  * World y grows downwards, so climbing means y gets smaller.
  */
 
@@ -15,9 +16,9 @@ function deepFreeze(object) {
 
 export const CONFIG = deepFreeze({
   view: {
-    height: 720,
-    minWidth: 520, // a fixed-width column; the window letterboxes around it
-    maxWidth: 520,
+    width: 520, // the column is always this wide
+    minHeight: 720, // and at least this tall; on tall screens (phones held upright) it grows to fill them
+    maxHeight: 1160,
   },
 
   loop: {

@@ -2,22 +2,28 @@ import { clamp } from '../utils/math.js';
 
 /**
  * Owns the canvas. Keeps it sharp on high-DPI screens and fits the virtual
- * view (a fixed height, and a width that follows the window within limits)
- * into whatever space the page gives it.
+ * view into whatever space the page gives it. The view is always `width`
+ * world pixels wide; its height follows the screen's shape between
+ * `minHeight` and `maxHeight`, so a phone held upright is filled top to
+ * bottom instead of showing a short column with empty bands.
  */
 export class Viewport {
-  constructor(canvas, { height, minWidth, maxWidth }) {
+  constructor(canvas, { width, minHeight, maxHeight }) {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
-    this.height = height;
-    this.minWidth = minWidth;
-    this.maxWidth = maxWidth;
-    this.width = minWidth;
+    this.width = width;
+    this.minHeight = minHeight;
+    this.maxHeight = maxHeight;
+    this.height = minHeight;
     this.pixelScale = 1; // device pixels per world pixel
     this.offsetX = 0; // device pixels between the canvas edge and the view
     this.offsetY = 0;
 
-    window.addEventListener('resize', () => this.resize());
+    const resize = () => this.resize();
+    window.addEventListener('resize', resize);
+    window.addEventListener('orientationchange', resize);
+    window.visualViewport?.addEventListener('resize', resize); // mobile browser bars sliding in and out
+    if ('ResizeObserver' in window) new ResizeObserver(resize).observe(canvas);
     this.resize();
   }
 
@@ -26,11 +32,14 @@ export class Viewport {
     const cssHeight = this.canvas.clientHeight;
     if (cssWidth === 0 || cssHeight === 0) return;
 
+    // Phones are high-DPI already; past 2× the extra pixels cost speed without looking sharper.
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    this.canvas.width = Math.round(cssWidth * dpr);
-    this.canvas.height = Math.round(cssHeight * dpr);
+    const canvasWidth = Math.round(cssWidth * dpr);
+    const canvasHeight = Math.round(cssHeight * dpr);
+    if (this.canvas.width !== canvasWidth) this.canvas.width = canvasWidth;
+    if (this.canvas.height !== canvasHeight) this.canvas.height = canvasHeight;
 
-    this.width = clamp(this.height * (cssWidth / cssHeight), this.minWidth, this.maxWidth);
+    this.height = clamp(this.width * (cssHeight / cssWidth), this.minHeight, this.maxHeight);
     const cssScale = Math.min(cssWidth / this.width, cssHeight / this.height);
     this.pixelScale = cssScale * dpr;
     this.offsetX = (this.canvas.width - this.width * this.pixelScale) / 2;

@@ -15,6 +15,7 @@ export class Sound {
     this.noise = null; // one second of white noise, shared by every whoosh, roar and crackle
     const unlock = () => this.unlock();
     window.addEventListener('pointerdown', unlock, { capture: true });
+    window.addEventListener('touchend', unlock, { capture: true }); // iOS only allows audio to start on a touch's end
     window.addEventListener('keydown', unlock, { capture: true });
   }
 

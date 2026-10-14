@@ -21,6 +21,7 @@ export class Slingshot {
     canvas.addEventListener('pointermove', (event) => this.onMove(event));
     canvas.addEventListener('pointerup', (event) => this.onUp(event));
     canvas.addEventListener('pointercancel', () => this.cancel());
+    canvas.addEventListener('contextmenu', (event) => event.preventDefault()); // no long-press menu mid-aim
     window.addEventListener('blur', () => this.cancel());
   }
 

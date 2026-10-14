@@ -14,7 +14,7 @@ export class World {
   constructor({ camera, events, random }) {
     this.camera = camera;
     this.events = events;
-    this.width = CONFIG.view.minWidth;
+    this.width = CONFIG.view.width;
     this.jumpModel = new JumpModel(CONFIG.player);
     this.abyss = new Abyss(camera);
     this.effects = new Effects();
@@ -47,7 +47,7 @@ export class World {
     this.startBottom = this.player.bottom;
     this.climbed = 0;
     this.bestClimbed = bestMeters * CONFIG.score.pixelsPerMeter;
-    this.camera.snapTo(CONFIG.view.height);
+    this.camera.snapTo(CONFIG.view.minHeight); // the floor sits near the bottom of the screen, whatever its height
     this.extendLevel();
   }
 

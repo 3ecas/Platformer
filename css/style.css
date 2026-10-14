@@ -11,12 +11,18 @@
 
 html {
   height: 100%;
+  overscroll-behavior: none; /* no pull-to-refresh or rubber-banding on phones */
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
   height: 100%;
+  height: 100dvh; /* the visible height, with the phone browser's bars accounted for */
   margin: 0;
   overflow: hidden;
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
   background: var(--page-bg);
   color: var(--text);
   font-family: var(--font-body);
@@ -60,14 +66,14 @@ body {
 
   /* A small stack tucked into the top-left corner of the column. */
   position: absolute;
-  top: calc(var(--view-top, 0px) + 12 * var(--u));
-  left: calc(var(--view-left, 0px) + 14 * var(--u));
+  top: calc(var(--view-top, 0px) + max(12 * var(--u), env(safe-area-inset-top, 0px)));
+  left: calc(var(--view-left, 0px) + max(14 * var(--u), env(safe-area-inset-left, 0px)));
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: calc(6 * var(--u));
   font-family: var(--font-data);
-  font-size: calc(12 * var(--u));
+  font-size: max(11px, 12 * var(--u)); /* stays readable on small phones */
   line-height: 1;
   z-index: 2; /* the height readout stays in front, menus included */
 }
@@ -86,8 +92,8 @@ body {
 .hud__mute {
   display: grid;
   place-items: center;
-  width: calc(28 * var(--u));
-  height: calc(28 * var(--u));
+  width: max(32px, 28 * var(--u)); /* a comfortable fingertip target */
+  height: max(32px, 28 * var(--u));
   padding: 0;
   color: var(--text);
   background: var(--sheet);
@@ -330,6 +336,7 @@ kbd {
 /* Controls ------------------------------------------------------------------ */
 
 .button {
+  touch-action: manipulation; /* no double-tap zoom delay */
   padding: 0.8rem 1.5rem;
   font-family: var(--font-data);
   font-size: 1.05rem;
@@ -367,6 +374,7 @@ kbd {
 
 @media (prefers-reduced-motion: reduce) {
   .button {
+  touch-action: manipulation; /* no double-tap zoom delay */
     transition: none;
   }
 }
