@@ -22,6 +22,7 @@ export class World {
     this.startFloor = null;
     this.platforms = [];
     this.thorns = [];
+    this.flamers = [];
     this.player = null;
     this.startBottom = 0;
     this.climbed = 0; // highest point reached, in world pixels above the floor
@@ -38,6 +39,7 @@ export class World {
     this.startFloor = this.generator.createStart();
     this.platforms = [this.startFloor];
     this.thorns = [];
+    this.flamers = [];
     this.effects.clear();
 
     this.player = new Player((this.width - CONFIG.player.size) / 2, 0, this.jumpModel);
@@ -52,6 +54,7 @@ export class World {
   update(dt, launch = null) {
     for (const platform of this.platforms) platform.update(dt);
     for (const thorn of this.thorns) thorn.update(dt);
+    for (const flamer of this.flamers) flamer.update(dt);
     if (this.player.alive) this.updatePlayer(dt, launch);
     this.effects.update(dt);
     this.extendLevel();
@@ -71,6 +74,7 @@ export class World {
     if (this.abyss.hasSwallowed(player)) this.onFell();
     else if (player.grounded && player.ground.isSpikedAt(player.centerX)) this.onHit('spikes');
     else if (this.thorns.some((thorn) => thorn.isTouching(player))) this.onHit('thorn');
+    else if (this.flamers.some((flamer) => flamer.isBurning(player))) this.onHit('flame');
   }
 
   climb(pixels) {
@@ -123,9 +127,10 @@ export class World {
   extendLevel() {
     const horizon = this.camera.top - CONFIG.generation.lookAhead;
     while (this.generator.last.top > horizon) {
-      const { platform, thorn } = this.generator.next();
+      const { platform, thorn, flamer } = this.generator.next();
       this.platforms.push(platform);
       if (thorn) this.thorns.push(thorn);
+      if (flamer) this.flamers.push(flamer);
     }
   }
 
@@ -134,6 +139,7 @@ export class World {
     const below = this.abyss.top + CONFIG.generation.cleanupMargin;
     this.platforms = this.platforms.filter((platform) => platform.top < below);
     this.thorns = this.thorns.filter((thorn) => thorn.y - thorn.radius < below);
+    this.flamers = this.flamers.filter((flamer) => flamer.y - 20 < below);
   }
 
   /** `shot` is the slingshot pull in progress, if any. */
@@ -147,6 +153,7 @@ export class World {
     this.renderMarkers(ctx, theme);
     for (const platform of this.platforms) platform.render(ctx, theme);
     for (const thorn of this.thorns) thorn.render(ctx, theme);
+    for (const flamer of this.flamers) flamer.render(ctx, theme);
     if (this.player.alive) {
       if (shot) this.renderAim(ctx, theme, shot);
       this.player.render(ctx, theme);

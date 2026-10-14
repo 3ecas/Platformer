@@ -98,6 +98,12 @@ export const CONFIG = deepFreeze({
     thornRadius: 10,
     thornRange: { min: 60, max: 170 },
     thornSpeed: { min: 0.8, max: 1.7 },
+    flamesFrom: 100, // metres: flamethrowers on the side walls, in gaps without a thorn
+    flamesChance: { min: 0.2, max: 0.45 },
+    flameLength: { min: 150, max: 270 }, // never past about half the column, so there's always a way by
+    flameOffTime: { min: 1.6, max: 2.8 }, // seconds
+    flameWarnTime: 0.6,
+    flameOnTime: { min: 1.1, max: 1.8 },
     reachSafety: 0.85, // share of the theoretical jump reach the generator relies on
     rampPlatforms: 120, // platforms until the difficulty maxes out
     // Difficulty blends from `easy` to `hard`. `riseMin`/`riseMax` are fractions of the

@@ -15,6 +15,9 @@ const COLOR_TOKENS = {
   dust: '--dust',
   hazard: '--hazard',
   hazardCore: '--hazard-core',
+  flameHot: '--flame-hot',
+  flame: '--flame',
+  flameTip: '--flame-tip',
   player: '--player',
   pickupText: '--pickup-text',
 };

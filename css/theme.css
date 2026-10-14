@@ -42,6 +42,9 @@
   --dust: rgba(185, 168, 220, 0.7);
   --hazard: #ee9fb3; /* deeper rose: spikes and thorns */
   --hazard-core: #f8d0da;
+  --flame-hot: #fde6a6; /* butter */
+  --flame: #fbc3a3; /* peach */
+  --flame-tip: #f3a9c0; /* rose */
 
   /* Actor */
   --player: #f6b8a2;

@@ -1,5 +1,6 @@
 import { CONFIG } from '../config.js';
 import { Platform } from '../entities/Platform.js';
+import { Flamer } from '../entities/Flamer.js';
 import { Thorn } from '../entities/Thorn.js';
 import { clamp, lerp } from '../utils/math.js';
 
@@ -16,7 +17,8 @@ const SPREAD_TRIES = 12;
  * pushed away from the last so the climb zigzags across the column instead
  * of stacking up in one place. From `movingFrom` metres up, some platforms
  * slide side to side; from `spikesFrom` some carry spikes, and from
- * `thornsFrom` thorn balls drift in the gaps, all more often the higher you go.
+ * `thornsFrom` thorn balls drift in the gaps, and from `flamesFrom`
+ * flamethrowers fire from the walls, all more often the higher you go.
  */
 export class LevelGenerator {
   constructor({ random, jumpModel, viewWidth }) {
@@ -41,7 +43,7 @@ export class LevelGenerator {
     return this.last;
   }
 
-  /** Builds the next platform above the previous one, plus a thorn in the gap below it, sometimes. */
+  /** Builds the next platform above the previous one, sometimes with a thorn or a flamethrower in the gap below it. */
   next() {
     const tuning = this.tuning();
     const { thickness } = CONFIG.platform;
@@ -61,10 +63,11 @@ export class LevelGenerator {
       spikes: this.pickSpikes(top, width),
     });
     const thorn = this.pickThorn(this.last.top, top);
+    const flamer = thorn ? null : this.pickFlamer(this.last.top, top);
 
     this.last = platform;
     this.count += 1;
-    return { platform, thorn };
+    return { platform, thorn, flamer };
   }
 
   metersAt(top) {
@@ -85,6 +88,23 @@ export class LevelGenerator {
     const length = Math.min(width * this.random.range(RULES.spikesShare.min, RULES.spikesShare.max), width - RULES.spikesMinSafe);
     if (length < 18) return null; // too narrow to spike and still land on
     return this.random.chance(0.5) ? { from: 0, to: length } : { from: width - length, to: width };
+  }
+
+  /** A flamethrower on one wall, firing across part of the gap between two platforms. */
+  pickFlamer(lowerTop, upperTop) {
+    const ramp = this.obstacleRamp(upperTop, RULES.flamesFrom);
+    if (ramp < 0 || !this.random.chance(lerp(RULES.flamesChance.min, RULES.flamesChance.max, ramp))) return null;
+    const range = (key) => this.random.range(RULES[key].min, RULES[key].max);
+    return new Flamer({
+      side: this.random.chance(0.5) ? 'left' : 'right',
+      y: (lowerTop + upperTop) / 2,
+      length: range('flameLength'),
+      viewWidth: this.viewWidth,
+      offTime: range('flameOffTime'),
+      warnTime: RULES.flameWarnTime,
+      onTime: range('flameOnTime'),
+      phase: this.random.range(0, 10),
+    });
   }
 
   /** A thorn ball drifting across the middle of the gap between two platforms. */

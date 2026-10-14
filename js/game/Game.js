@@ -19,6 +19,7 @@ const DEATH_REASONS = Object.freeze({
   fall: 'You fell.',
   spikes: 'Spiked!',
   thorn: 'Pricked by a thorn!',
+  flame: 'Toasted!',
 });
 
 const State = Object.freeze({
