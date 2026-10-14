@@ -76,6 +76,9 @@ export class Game {
     this.events.on(EVENTS.PLAYER_LAUNCHED, (strength) => this.sound.whoosh(strength));
     this.events.on(EVENTS.PLAYER_LANDED, (impact) => this.sound.land(impact));
     this.events.on(EVENTS.PLAYER_BOUNCED, (strength) => this.sound.bounce(strength));
+    // Flames are only heard during a run, not behind the menus.
+    this.events.on(EVENTS.FLAME_WARNING, (duration) => this.state === State.PLAYING && this.sound.sputter(duration));
+    this.events.on(EVENTS.FLAME_FIRED, (duration) => this.state === State.PLAYING && this.sound.flame(duration));
     this.events.on(EVENTS.PLATFORM_LANDED, () => this.score.addPlatform());
     this.events.on(EVENTS.PLAYER_FELL, (cause) => {
       this.sound.lose();

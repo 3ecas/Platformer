@@ -54,11 +54,20 @@ export class World {
   update(dt, launch = null) {
     for (const platform of this.platforms) platform.update(dt);
     for (const thorn of this.thorns) thorn.update(dt);
-    for (const flamer of this.flamers) flamer.update(dt);
+    for (const flamer of this.flamers) this.updateFlamer(flamer, dt);
     if (this.player.alive) this.updatePlayer(dt, launch);
     this.effects.update(dt);
     this.extendLevel();
     this.forgetOffscreen();
+  }
+
+  /** Advances a flamethrower and, when it's on screen, announces it warming up or firing so it can be heard. */
+  updateFlamer(flamer, dt) {
+    flamer.update(dt);
+    const onScreen = flamer.y > this.camera.top && flamer.y < this.camera.bottom;
+    if (!onScreen) return;
+    if (flamer.startedWarning) this.events.emit(EVENTS.FLAME_WARNING, flamer.warnTime);
+    if (flamer.ignited) this.events.emit(EVENTS.FLAME_FIRED, flamer.onTime);
   }
 
   updatePlayer(dt, launch) {

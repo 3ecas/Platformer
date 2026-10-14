@@ -24,6 +24,10 @@ export class Flamer {
     this.clock = phase;
     this.particles = [];
     this.emitDebt = 0;
+    this.lastPhase = this.phase;
+    // Set for a single step when the phase changes, so the world can play a sound.
+    this.startedWarning = false;
+    this.ignited = false;
   }
 
   get cycle() {
@@ -44,6 +48,9 @@ export class Flamer {
   update(dt) {
     this.clock += dt;
     const { phase } = this;
+    this.startedWarning = phase === Phase.WARN && this.lastPhase !== Phase.WARN;
+    this.ignited = phase === Phase.ON && this.lastPhase !== Phase.ON;
+    this.lastPhase = phase;
 
     // Full jet when on; a weak sputter at the nozzle while warning.
     const full = PARTICLES_PER_PIXEL * this.length;

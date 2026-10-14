@@ -12,7 +12,7 @@ export class Sound {
     this.context = null;
     this.master = null;
     this.muted = readMuted();
-    this.noise = null; // one second of white noise, shared by every whoosh
+    this.noise = null; // one second of white noise, shared by every whoosh, roar and crackle
     const unlock = () => this.unlock();
     window.addEventListener('pointerdown', unlock, { capture: true });
     window.addEventListener('keydown', unlock, { capture: true });
@@ -99,6 +99,71 @@ export class Sound {
     source.connect(filter).connect(gain).connect(this.master);
     source.start(now);
     source.stop(now + length + 0.02);
+  }
+
+  /**
+   * A flamethrower firing for `duration` seconds: a soft low "whump", then a
+   * rushing roar of low-passed noise with a gentle flutter, fading at the end.
+   */
+  flame(duration) {
+    if (!this.playing) return;
+    const { context } = this;
+    const now = context.currentTime;
+    const end = now + duration;
+
+    this.tone({ type: 'sine', from: 150, to: 55, start: now, length: 0.18, volume: 0.22 });
+
+    const source = context.createBufferSource();
+    source.buffer = this.noiseBuffer();
+    source.loop = true;
+    const filter = context.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(700, now);
+    filter.frequency.linearRampToValueAtTime(1300, now + 0.15);
+    filter.Q.value = 0.8;
+    const gain = context.createGain();
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.2, now + 0.08);
+    gain.gain.setValueAtTime(0.2, Math.max(now + 0.08, end - 0.18));
+    gain.gain.exponentialRampToValueAtTime(0.0001, end);
+
+    // Flutter: a slow wobble on the roar's loudness, like a real flame.
+    const flutter = context.createOscillator();
+    const depth = context.createGain();
+    flutter.frequency.value = 9;
+    depth.gain.value = 0.05;
+    flutter.connect(depth).connect(gain.gain);
+
+    source.connect(filter).connect(gain).connect(this.master);
+    source.start(now, Math.random()); // start somewhere new in the noise each time
+    source.stop(end + 0.05);
+    flutter.start(now);
+    flutter.stop(end + 0.05);
+  }
+
+  /** The warning before a flamethrower fires: a few dry crackles across `duration` seconds. */
+  sputter(duration) {
+    if (!this.playing) return;
+    const { context } = this;
+    const now = context.currentTime;
+    const count = 5;
+    for (let index = 0; index < count; index += 1) {
+      const start = now + (index / count) * duration + Math.random() * 0.05;
+      const source = context.createBufferSource();
+      source.buffer = this.noiseBuffer();
+      const filter = context.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.value = 1800 + Math.random() * 1400;
+      filter.Q.value = 2;
+      const gain = context.createGain();
+      const volume = 0.08 + 0.1 * (index / count); // building up to the burst
+      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.exponentialRampToValueAtTime(volume, start + 0.005);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.04);
+      source.connect(filter).connect(gain).connect(this.master);
+      source.start(start, Math.random() * 0.9);
+      source.stop(start + 0.05);
+    }
   }
 
   /** A gentle "wah-wah-waaah": three falling notes, the last one sagging. */

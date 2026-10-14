@@ -62,10 +62,10 @@ export class LevelGenerator {
       ...this.pickMotion(top, x, width),
       spikes: this.pickSpikes(top, width),
     });
-    // A lift can carry a standing player up into the middle of the gap, so keep gaps beside lifts clear.
-    const nextToLift = isLift(platform) || isLift(this.last);
-    const thorn = nextToLift ? null : this.pickThorn(this.last.homeY, top);
-    const flamer = nextToLift || thorn ? null : this.pickFlamer(this.last, platform);
+    // A lift can carry a player standing on it up into the middle of the gap above, so keep that gap clear.
+    const aboveLift = isLift(this.last);
+    const flamer = aboveLift ? null : this.pickFlamer(this.last, platform);
+    const thorn = aboveLift || flamer ? null : this.pickThorn(this.last.homeY, top);
 
     this.last = platform;
     this.count += 1;
@@ -93,31 +93,34 @@ export class LevelGenerator {
   }
 
   /**
-   * A flamethrower across the gap between two platforms, placed so it blocks
-   * the way up: every jump from the lower platform to the upper one has to
-   * pass its height, and the jet reaches from the nearer wall past the far
-   * end of the stretch between the two platforms. So the player has to time
-   * the jump for when it's off.
+   * A flamethrower across the way up between two platforms. Every jump from
+   * the lower one to the upper one passes its height, and the jet reaches from
+   * the nearer wall to just past the far end of the stretch between the two
+   * platforms' centres, so the player has to time the jump for when it's off.
+   * It's only placed where that stretch comes close to a wall, so the jet
+   * stays short and doesn't waste flame on space the player never crosses.
    */
   pickFlamer(lower, upper) {
     const ramp = this.obstacleRamp(upper.homeY, RULES.flamesFrom);
-    if (ramp < 0 || !this.random.chance(lerp(RULES.flamesChance.min, RULES.flamesChance.max, ramp))) return null;
+    if (ramp < 0) return null;
     const range = (key) => this.random.range(RULES[key].min, RULES[key].max);
 
     // The stretch a jump between the two crosses, widened by any sideways swing.
     const swing = (platform) => (platform.moving && platform.axis === 'x' ? platform.range : 0);
     const centers = [lower.homeX + lower.width / 2, upper.homeX + upper.width / 2];
     const margin = RULES.flameCoverMargin + Math.max(swing(lower), swing(upper));
-    const pathLeft = Math.min(...centers) - margin;
-    const pathRight = Math.max(...centers) + margin;
-    const side = (pathLeft + pathRight) / 2 < this.viewWidth / 2 ? 'left' : 'right';
-    const reachNeeded = side === 'left' ? pathRight : this.viewWidth - pathLeft;
-    const length = clamp(reachNeeded, RULES.flameLength.min, this.viewWidth - RULES.flameFarGap);
+    const pathLeft = Math.max(0, Math.min(...centers) - margin);
+    const pathRight = Math.min(this.viewWidth, Math.max(...centers) + margin);
+    const fromLeft = { side: 'left', idle: pathLeft, length: pathRight };
+    const fromRight = { side: 'right', idle: this.viewWidth - pathRight, length: this.viewWidth - pathLeft };
+    const { side, idle, length } = fromLeft.idle <= fromRight.idle ? fromLeft : fromRight;
+    if (idle > RULES.flameMaxIdle || length > RULES.flameMaxLength) return null; // the way up is too far from a wall
+    if (!this.random.chance(lerp(RULES.flamesChance.min, RULES.flamesChance.max, ramp))) return null;
 
     return new Flamer({
       side,
       y: (lower.homeY + upper.homeY) / 2,
-      length,
+      length: Math.max(length, RULES.flameMinLength),
       viewWidth: this.viewWidth,
       offTime: range('flameOffTime'),
       warnTime: RULES.flameWarnTime,
