@@ -14,14 +14,6 @@ import { Random } from '../utils/Random.js';
 import { World } from '../world/World.js';
 import { Score } from './Score.js';
 
-// The first words of the results card, by how the run ended.
-const DEATH_REASONS = Object.freeze({
-  fall: 'You fell.',
-  spikes: 'Spiked!',
-  thorn: 'Pricked by a thorn!',
-  flame: 'Toasted!',
-});
-
 const State = Object.freeze({
   READY: 'ready', // title screen, with the climb waiting behind it
   PLAYING: 'playing',
@@ -80,9 +72,9 @@ export class Game {
     this.events.on(EVENTS.FLAME_WARNING, (duration) => this.state === State.PLAYING && this.sound.sputter(duration));
     this.events.on(EVENTS.FLAME_FIRED, (duration) => this.state === State.PLAYING && this.sound.flame(duration));
     this.events.on(EVENTS.PLATFORM_LANDED, () => this.score.addPlatform());
-    this.events.on(EVENTS.PLAYER_FELL, (cause) => {
+    this.events.on(EVENTS.PLAYER_FELL, () => {
       this.sound.lose();
-      this.endRun(cause);
+      this.endRun();
     });
 
     // Stop the clock whenever the player looks away.
@@ -132,8 +124,7 @@ export class Game {
     this.slingshot.cancel();
   }
 
-  endRun(cause = 'fall') {
-    this.cause = cause;
+  endRun() {
     this.state = State.OVER;
     this.setSlingshot(false);
     this.timeSinceFall = 0;
@@ -146,7 +137,6 @@ export class Game {
   showResults() {
     this.resultsShown = true;
     this.screens.showGameOver({
-      reason: DEATH_REASONS[this.cause] ?? DEATH_REASONS.fall,
       height: this.score.height,
       platforms: this.score.platforms,
       best: this.score.best,
