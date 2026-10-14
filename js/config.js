@@ -87,6 +87,9 @@ export const CONFIG = deepFreeze({
     movingRamp: 250,
     movingRange: { min: 50, max: 130 }, // how far either side of its centre it travels
     movingSpeed: { min: 0.7, max: 1.5 }, // radians per second through the swing
+    liftsFrom: 75, // metres: from here some moving platforms rise and sink instead
+    liftShare: 0.45, // share of moving platforms that go up and down
+    liftRange: { min: 22, max: 42 }, // how far above and below its home it travels
     // Obstacles, each starting at its own height and growing more common over `obstacleRamp` metres.
     obstacleRamp: 300,
     spikesFrom: 75, // metres: spikes along part of some platforms

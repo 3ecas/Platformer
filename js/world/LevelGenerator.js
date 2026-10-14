@@ -49,7 +49,7 @@ export class LevelGenerator {
     const { thickness } = CONFIG.platform;
     const maxRise = this.jumpModel.jumpHeight - RULES.riseMargin;
     const rise = maxRise * this.random.range(tuning.riseMin, tuning.riseMax);
-    const top = this.last.top - rise;
+    const top = this.last.homeY - rise;
     const width = this.random.range(tuning.widthMin, tuning.widthMax);
     const x = this.pickX(top, width, tuning);
 
@@ -62,8 +62,10 @@ export class LevelGenerator {
       ...this.pickMotion(top, x, width),
       spikes: this.pickSpikes(top, width),
     });
-    const thorn = this.pickThorn(this.last.top, top);
-    const flamer = thorn ? null : this.pickFlamer(this.last.top, top);
+    // A lift can carry a standing player up into the middle of the gap, so keep gaps beside lifts clear.
+    const nextToLift = isLift(platform) || isLift(this.last);
+    const thorn = nextToLift ? null : this.pickThorn(this.last.homeY, top);
+    const flamer = nextToLift || thorn ? null : this.pickFlamer(this.last.homeY, top);
 
     this.last = platform;
     this.count += 1;
@@ -126,8 +128,10 @@ export class LevelGenerator {
   }
 
   /**
-   * Side-to-side motion for platforms high enough up, or none. The swing is
-   * centred on the reachable spot `pickX` chose, trimmed to stay inside the walls.
+   * Motion for platforms high enough up, or none. From `movingFrom` some slide
+   * side to side, centred on the reachable spot `pickX` chose and trimmed to
+   * stay inside the walls; from `liftsFrom` some rise and sink instead, by a
+   * small enough range that the next jump still works from any point of it.
    */
   pickMotion(top, x, width) {
     const meters = this.metersAt(top);
@@ -135,11 +139,16 @@ export class LevelGenerator {
     const ramp = clamp((meters - RULES.movingFrom) / RULES.movingRamp, 0, 1);
     if (!this.random.chance(lerp(RULES.movingChance.min, RULES.movingChance.max, ramp))) return {};
 
+    const { min, max } = RULES.movingSpeed;
+    const motion = { speed: this.random.range(min, max), phase: this.random.range(0, Math.PI * 2) };
+    if (meters >= RULES.liftsFrom && this.random.chance(RULES.liftShare)) {
+      return { ...motion, axis: 'y', range: this.random.range(RULES.liftRange.min, RULES.liftRange.max) };
+    }
+
     const room = Math.min(x - RULES.sideMargin, this.viewWidth - RULES.sideMargin - width - x);
     const range = Math.min(room, this.random.range(RULES.movingRange.min, RULES.movingRange.max));
     if (range < RULES.movingRange.min / 2) return {}; // squeezed against a wall: leave it still
-    const { min, max } = RULES.movingSpeed;
-    return { range, speed: this.random.range(min, max), phase: this.random.range(0, Math.PI * 2) };
+    return { ...motion, axis: 'x', range };
   }
 
   /** Blends the easy and hard settings by how far into the climb we are. */
@@ -155,7 +164,7 @@ export class LevelGenerator {
    * spots at least `minShift` away from it.
    */
   pickX(top, width, tuning) {
-    const reach = this.jumpModel.reach(this.last.top, top, NO_CEILING) * RULES.reachSafety * tuning.reachMax;
+    const reach = this.jumpModel.reach(this.last.homeY, top, NO_CEILING) * RULES.reachSafety * tuning.reachMax;
     const { sideMargin, minShift } = RULES;
     const home = this.last.homeX; // a moving platform's centre of swing
     const min = Math.max(sideMargin, home - reach - width);
@@ -172,4 +181,8 @@ export class LevelGenerator {
     }
     return best; // no room for a full shift: take the widest one found
   }
+}
+
+function isLift(platform) {
+  return platform.moving && platform.axis === 'y';
 }

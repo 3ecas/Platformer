@@ -7,22 +7,27 @@ const SPIKE_HEIGHT = 9;
 /**
  * A floating ledge, solid only from above, so the player can jump up through it.
  * Higher up, part of its top may carry spikes: landing there ends the run.
- * Most stay put; a moving one (`range` > 0) swings side to side around `centerX`
- * on a sine wave, so where it will be at any moment can be worked out exactly.
+ * Most stay put; a moving one (`range` > 0) swings side to side (`axis` 'x') or
+ * up and down ('y') around its home spot on a sine wave, so where it will be
+ * at any moment can be worked out exactly.
  * Once a platform slips off the bottom of the view it's gone.
  */
 export class Platform extends Entity {
-  constructor({ x, y, width, height, index = 0, scores = true, range = 0, speed = 0, phase = 0, spikes = null }) {
+  constructor({ x, y, width, height, index = 0, scores = true, axis = 'x', range = 0, speed = 0, phase = 0, spikes = null }) {
     super(x, y, width, height);
     this.scores = scores; // the starting floor doesn't count
     this.colorKey = COLOR_KEYS[index % COLOR_KEYS.length];
     this.touched = false;
     this.homeX = x;
+    this.homeY = y; // a moving platform swings around this spot
+    this.axis = axis; // 'x' slides side to side, 'y' rises and sinks
     this.range = range;
     this.speed = speed;
     this.clock = phase;
     this.x = this.leftAfter(0);
+    this.y = this.topAfter(0);
     this.prevX = this.x; // position before this step, so riders can move with it
+    this.prevY = this.y;
     this.spikes = spikes; // { from, to }: a stretch of the top, measured from the left edge
   }
 
@@ -39,8 +44,18 @@ export class Platform extends Entity {
 
   /** Left edge `seconds` from now. */
   leftAfter(seconds) {
-    if (!this.moving) return this.homeX;
-    return this.homeX + Math.sin((this.clock + seconds) * this.speed) * this.range;
+    if (!this.moving || this.axis !== 'x') return this.homeX;
+    return this.homeX + this.swingAfter(seconds);
+  }
+
+  /** Top edge `seconds` from now. */
+  topAfter(seconds) {
+    if (!this.moving || this.axis !== 'y') return this.homeY;
+    return this.homeY + this.swingAfter(seconds);
+  }
+
+  swingAfter(seconds) {
+    return Math.sin((this.clock + seconds) * this.speed) * this.range;
   }
 
   /** Marks the platform as landed on. Returns true only the first time. */
@@ -52,29 +67,18 @@ export class Platform extends Entity {
 
   update(dt) {
     this.prevX = this.x;
+    this.prevY = this.y;
     if (!this.moving) return;
     this.clock += dt;
     this.x = this.leftAfter(0);
+    this.y = this.topAfter(0);
   }
 
   render(ctx, theme) {
     const { colors } = theme;
     const { x, y, width, height } = this;
 
-    // A moving platform's track: a faint dotted rail across its whole swing.
-    if (this.moving) {
-      const railY = y + height / 2;
-      ctx.strokeStyle = colors.marker;
-      ctx.lineWidth = 2;
-      ctx.lineCap = 'round';
-      ctx.setLineDash([2, 8]);
-      ctx.beginPath();
-      ctx.moveTo(this.homeX - this.range, railY);
-      ctx.lineTo(this.homeX + this.range + width, railY);
-      ctx.stroke();
-      ctx.setLineDash([]);
-      ctx.lineCap = 'butt';
-    }
+    if (this.moving) this.renderRail(ctx, colors);
 
     ctx.fillStyle = colors[this.colorKey];
     ctx.fillRect(x, y, width, height);
@@ -84,6 +88,28 @@ export class Platform extends Entity {
     ctx.fillRect(x, y + height - 4, width, 4);
 
     if (this.spikes) this.renderSpikes(ctx, colors);
+  }
+
+  /** A moving platform's track: a faint dotted rail across its whole swing. */
+  renderRail(ctx, colors) {
+    const { width, height, homeX, homeY, range } = this;
+    ctx.strokeStyle = colors.marker;
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.setLineDash([2, 8]);
+    ctx.beginPath();
+    if (this.axis === 'x') {
+      const railY = this.y + height / 2;
+      ctx.moveTo(homeX - range, railY);
+      ctx.lineTo(homeX + range + width, railY);
+    } else {
+      const railX = homeX + width / 2;
+      ctx.moveTo(railX, homeY - range);
+      ctx.lineTo(railX, homeY + range + height);
+    }
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.lineCap = 'butt';
   }
 
   /** A row of small triangles standing on the top edge. */

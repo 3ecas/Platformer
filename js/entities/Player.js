@@ -110,7 +110,9 @@ export class Player extends Entity {
 
   /** A moving platform carries whoever stands on it. */
   rideGround() {
-    if (this.grounded) this.x += this.ground.x - this.ground.prevX;
+    if (!this.grounded) return;
+    this.x += this.ground.x - this.ground.prevX;
+    this.y += this.ground.y - this.ground.prevY;
   }
 
   /** Platforms are open at the sides, so only the walls get in the way, and the box bounces off them. */
@@ -132,7 +134,8 @@ export class Player extends Entity {
     let landing = null;
     for (const solid of solids) {
       if (!this.isSupportedBy(solid.left, solid.width, this.centerX)) continue;
-      const crossed = previousBottom <= solid.top + SKIN && this.bottom >= solid.top;
+      // A rising platform may have moved up past the feet this step, so check against where it was too.
+      const crossed = previousBottom <= Math.max(solid.top, solid.prevY) + SKIN && this.bottom >= solid.top;
       if (crossed && (!landing || solid.top < landing.top)) landing = solid;
     }
     if (!landing) return;
@@ -193,7 +196,8 @@ export class Player extends Entity {
       for (const solid of solids) {
         const left = solid.leftAfter(time);
         const supported = this.isSupportedBy(left, solid.width, x + width / 2);
-        if (supported && previousBottom <= solid.top + SKIN && bottom >= solid.top) return time;
+        const top = solid.topAfter(time);
+        if (supported && previousBottom <= top + SKIN && bottom >= top) return time;
       }
     }
     return null;
