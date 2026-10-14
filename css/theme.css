@@ -40,6 +40,8 @@
   --void: rgba(201, 182, 240, 0.55);
   --void-clear: rgba(201, 182, 240, 0);
   --dust: rgba(185, 168, 220, 0.7);
+  --hazard: #ee9fb3; /* deeper rose: spikes and thorns */
+  --hazard-core: #f8d0da;
 
   /* Actor */
   --player: #f6b8a2;

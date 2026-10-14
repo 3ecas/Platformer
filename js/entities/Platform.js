@@ -1,15 +1,18 @@
 import { Entity } from './Entity.js';
 
 const COLOR_KEYS = ['platformA', 'platformB', 'platformC', 'platformD'];
+const SPIKE_WIDTH = 9;
+const SPIKE_HEIGHT = 9;
 
 /**
  * A floating ledge, solid only from above, so the player can jump up through it.
+ * Higher up, part of its top may carry spikes: landing there ends the run.
  * Most stay put; a moving one (`range` > 0) swings side to side around `centerX`
  * on a sine wave, so where it will be at any moment can be worked out exactly.
  * Once a platform slips off the bottom of the view it's gone.
  */
 export class Platform extends Entity {
-  constructor({ x, y, width, height, index = 0, scores = true, range = 0, speed = 0, phase = 0 }) {
+  constructor({ x, y, width, height, index = 0, scores = true, range = 0, speed = 0, phase = 0, spikes = null }) {
     super(x, y, width, height);
     this.scores = scores; // the starting floor doesn't count
     this.colorKey = COLOR_KEYS[index % COLOR_KEYS.length];
@@ -20,6 +23,14 @@ export class Platform extends Entity {
     this.clock = phase;
     this.x = this.leftAfter(0);
     this.prevX = this.x; // position before this step, so riders can move with it
+    this.spikes = spikes; // { from, to }: a stretch of the top, measured from the left edge
+  }
+
+  /** True if a point at world x sits over this platform's spikes. */
+  isSpikedAt(x) {
+    if (!this.spikes) return false;
+    const offset = x - this.x;
+    return offset >= this.spikes.from && offset <= this.spikes.to;
   }
 
   get moving() {
@@ -71,5 +82,23 @@ export class Platform extends Entity {
     // A soft shadow band along the underside gives the slab a little depth.
     ctx.fillStyle = colors.platformEdge;
     ctx.fillRect(x, y + height - 4, width, 4);
+
+    if (this.spikes) this.renderSpikes(ctx, colors);
+  }
+
+  /** A row of small triangles standing on the top edge. */
+  renderSpikes(ctx, colors) {
+    const { from, to } = this.spikes;
+    const count = Math.max(1, Math.round((to - from) / SPIKE_WIDTH));
+    const width = (to - from) / count;
+    ctx.fillStyle = colors.hazard;
+    ctx.beginPath();
+    for (let index = 0; index < count; index += 1) {
+      const left = this.x + from + index * width;
+      ctx.moveTo(left, this.y);
+      ctx.lineTo(left + width / 2, this.y - SPIKE_HEIGHT);
+      ctx.lineTo(left + width, this.y);
+    }
+    ctx.fill();
   }
 }

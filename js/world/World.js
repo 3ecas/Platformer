@@ -21,6 +21,7 @@ export class World {
     this.generator = new LevelGenerator({ random, jumpModel: this.jumpModel, viewWidth: this.width });
     this.startFloor = null;
     this.platforms = [];
+    this.thorns = [];
     this.player = null;
     this.startBottom = 0;
     this.climbed = 0; // highest point reached, in world pixels above the floor
@@ -36,6 +37,7 @@ export class World {
   reset(bestMeters = 0) {
     this.startFloor = this.generator.createStart();
     this.platforms = [this.startFloor];
+    this.thorns = [];
     this.effects.clear();
 
     this.player = new Player((this.width - CONFIG.player.size) / 2, 0, this.jumpModel);
@@ -49,6 +51,7 @@ export class World {
 
   update(dt, launch = null) {
     for (const platform of this.platforms) platform.update(dt);
+    for (const thorn of this.thorns) thorn.update(dt);
     if (this.player.alive) this.updatePlayer(dt, launch);
     this.effects.update(dt);
     this.extendLevel();
@@ -66,6 +69,8 @@ export class World {
     // Height counts where you stand, so a big jump that misses doesn't score.
     if (player.grounded) this.climb(this.startBottom - player.bottom);
     if (this.abyss.hasSwallowed(player)) this.onFell();
+    else if (player.grounded && player.ground.isSpikedAt(player.centerX)) this.onHit('spikes');
+    else if (this.thorns.some((thorn) => thorn.isTouching(player))) this.onHit('thorn');
   }
 
   climb(pixels) {
@@ -104,19 +109,31 @@ export class World {
   onFell() {
     this.player.alive = false;
     this.effects.splash(this.player.centerX, this.abyss.top);
-    this.events.emit(EVENTS.PLAYER_FELL);
+    this.events.emit(EVENTS.PLAYER_FELL, 'fall');
+  }
+
+  /** Ran into spikes or a thorn: the run ends where the box is. */
+  onHit(cause) {
+    this.player.alive = false;
+    this.effects.splash(this.player.centerX, this.player.centerY);
+    this.events.emit(EVENTS.PLAYER_FELL, cause);
   }
 
   /** Streams new platforms in above the camera. */
   extendLevel() {
     const horizon = this.camera.top - CONFIG.generation.lookAhead;
-    while (this.generator.last.top > horizon) this.platforms.push(this.generator.next());
+    while (this.generator.last.top > horizon) {
+      const { platform, thorn } = this.generator.next();
+      this.platforms.push(platform);
+      if (thorn) this.thorns.push(thorn);
+    }
   }
 
   /** Drops platforms that have slipped out of the bottom of the view. */
   forgetOffscreen() {
     const below = this.abyss.top + CONFIG.generation.cleanupMargin;
     this.platforms = this.platforms.filter((platform) => platform.top < below);
+    this.thorns = this.thorns.filter((thorn) => thorn.y - thorn.radius < below);
   }
 
   /** `shot` is the slingshot pull in progress, if any. */
@@ -129,6 +146,7 @@ export class World {
     this.camera.applyTransform(ctx);
     this.renderMarkers(ctx, theme);
     for (const platform of this.platforms) platform.render(ctx, theme);
+    for (const thorn of this.thorns) thorn.render(ctx, theme);
     if (this.player.alive) {
       if (shot) this.renderAim(ctx, theme, shot);
       this.player.render(ctx, theme);

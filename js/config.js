@@ -87,6 +87,17 @@ export const CONFIG = deepFreeze({
     movingRamp: 250,
     movingRange: { min: 50, max: 130 }, // how far either side of its centre it travels
     movingSpeed: { min: 0.7, max: 1.5 }, // radians per second through the swing
+    // Obstacles, each starting at its own height and growing more common over `obstacleRamp` metres.
+    obstacleRamp: 300,
+    spikesFrom: 75, // metres: spikes along part of some platforms
+    spikesChance: { min: 0.25, max: 0.55 },
+    spikesShare: { min: 0.3, max: 0.5 }, // share of the platform's top that is spiked
+    spikesMinSafe: 44, // world pixels of top always left safe
+    thornsFrom: 125, // metres: thorn balls drifting in the gaps
+    thornsChance: { min: 0.2, max: 0.5 },
+    thornRadius: 10,
+    thornRange: { min: 60, max: 170 },
+    thornSpeed: { min: 0.8, max: 1.7 },
     reachSafety: 0.85, // share of the theoretical jump reach the generator relies on
     rampPlatforms: 120, // platforms until the difficulty maxes out
     // Difficulty blends from `easy` to `hard`. `riseMin`/`riseMax` are fractions of the

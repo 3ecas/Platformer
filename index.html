@@ -2,8 +2,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&amp;family=Nunito:wght@400;600;700&amp;display=swap">
-<link rel="stylesheet" href="css/theme.css?v=202610131945">
-<link rel="stylesheet" href="css/style.css?v=202610131945">
+<link rel="stylesheet" href="css/theme.css?v=202610140900">
+<link rel="stylesheet" href="css/style.css?v=202610140900">
 <script type="module" src="js/main.js"></script>
 <main class="stage">
   <canvas class="stage__canvas" id="game" aria-label="Jumpy game view"></canvas>
@@ -32,7 +32,6 @@
         <h1 class="sheet__title" id="start-title">Jumpy</h1>
         <div class="sheet__actions">
           <button class="button" type="button" data-action="play">Start climbing</button>
-          <p class="hint">Drag to fly</p>
         </div>
       </div>
     </section>
@@ -49,7 +48,7 @@
 
     <section class="screen" data-screen="over" aria-labelledby="over-title" hidden>
       <div class="sheet sheet--compact sheet--centered">
-        <p class="sheet__eyebrow" id="over-title">You fell. You reached</p>
+        <p class="sheet__eyebrow" id="over-title"><span data-field="reason">You fell.</span> You reached</p>
         <div class="sheet__result">
           <p class="badge" data-new-best hidden>New best</p>
           <p class="sheet__score"><span data-field="height">0</span><span class="sheet__unit">m</span></p>

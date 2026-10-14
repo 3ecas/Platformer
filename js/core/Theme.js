@@ -13,6 +13,8 @@ const COLOR_TOKENS = {
   void: '--void',
   voidClear: '--void-clear',
   dust: '--dust',
+  hazard: '--hazard',
+  hazardCore: '--hazard-core',
   player: '--player',
   pickupText: '--pickup-text',
 };

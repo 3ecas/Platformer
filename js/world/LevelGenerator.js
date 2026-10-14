@@ -1,5 +1,6 @@
 import { CONFIG } from '../config.js';
 import { Platform } from '../entities/Platform.js';
+import { Thorn } from '../entities/Thorn.js';
 import { clamp, lerp } from '../utils/math.js';
 
 const RULES = CONFIG.generation;
@@ -14,7 +15,8 @@ const SPREAD_TRIES = 12;
  * sideways than the same arc can carry the player. Within that, each one is
  * pushed away from the last so the climb zigzags across the column instead
  * of stacking up in one place. From `movingFrom` metres up, some platforms
- * slide side to side, more of them the higher you go.
+ * slide side to side; from `spikesFrom` some carry spikes, and from
+ * `thornsFrom` thorn balls drift in the gaps, all more often the higher you go.
  */
 export class LevelGenerator {
   constructor({ random, jumpModel, viewWidth }) {
@@ -39,7 +41,7 @@ export class LevelGenerator {
     return this.last;
   }
 
-  /** Builds the next platform above the previous one. */
+  /** Builds the next platform above the previous one, plus a thorn in the gap below it, sometimes. */
   next() {
     const tuning = this.tuning();
     const { thickness } = CONFIG.platform;
@@ -56,11 +58,51 @@ export class LevelGenerator {
       height: this.random.range(thickness.min, thickness.max),
       index: this.count,
       ...this.pickMotion(top, x, width),
+      spikes: this.pickSpikes(top, width),
     });
+    const thorn = this.pickThorn(this.last.top, top);
 
     this.last = platform;
     this.count += 1;
-    return platform;
+    return { platform, thorn };
+  }
+
+  metersAt(top) {
+    return (CONFIG.start.floorTop - top) / CONFIG.score.pixelsPerMeter;
+  }
+
+  /** 0 → 1 as the climb goes from `from` metres to `from + obstacleRamp`; −1 below `from`. */
+  obstacleRamp(top, from) {
+    const meters = this.metersAt(top);
+    if (meters < from) return -1;
+    return clamp((meters - from) / RULES.obstacleRamp, 0, 1);
+  }
+
+  /** Spikes along one end of the top, always leaving a safe stretch to land on. */
+  pickSpikes(top, width) {
+    const ramp = this.obstacleRamp(top, RULES.spikesFrom);
+    if (ramp < 0 || !this.random.chance(lerp(RULES.spikesChance.min, RULES.spikesChance.max, ramp))) return null;
+    const length = Math.min(width * this.random.range(RULES.spikesShare.min, RULES.spikesShare.max), width - RULES.spikesMinSafe);
+    if (length < 18) return null; // too narrow to spike and still land on
+    return this.random.chance(0.5) ? { from: 0, to: length } : { from: width - length, to: width };
+  }
+
+  /** A thorn ball drifting across the middle of the gap between two platforms. */
+  pickThorn(lowerTop, upperTop) {
+    const ramp = this.obstacleRamp(upperTop, RULES.thornsFrom);
+    if (ramp < 0 || !this.random.chance(lerp(RULES.thornsChance.min, RULES.thornsChance.max, ramp))) return null;
+    const radius = RULES.thornRadius;
+    const range = this.random.range(RULES.thornRange.min, RULES.thornRange.max);
+    const margin = RULES.sideMargin + radius * 1.4;
+    const homeX = this.random.range(margin + range, Math.max(margin + range, this.viewWidth - margin - range));
+    return new Thorn({
+      x: Math.min(homeX, this.viewWidth - margin),
+      y: (lowerTop + upperTop) / 2,
+      radius,
+      range: Math.min(range, this.viewWidth / 2 - margin),
+      speed: this.random.range(RULES.thornSpeed.min, RULES.thornSpeed.max),
+      phase: this.random.range(0, Math.PI * 2),
+    });
   }
 
   /**
@@ -68,7 +110,7 @@ export class LevelGenerator {
    * centred on the reachable spot `pickX` chose, trimmed to stay inside the walls.
    */
   pickMotion(top, x, width) {
-    const meters = (CONFIG.start.floorTop - top) / CONFIG.score.pixelsPerMeter;
+    const meters = this.metersAt(top);
     if (meters < RULES.movingFrom) return {};
     const ramp = clamp((meters - RULES.movingFrom) / RULES.movingRamp, 0, 1);
     if (!this.random.chance(lerp(RULES.movingChance.min, RULES.movingChance.max, ramp))) return {};
