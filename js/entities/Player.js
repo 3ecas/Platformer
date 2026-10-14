@@ -145,6 +145,7 @@ export class Player extends Entity {
     this.grounded = true;
     this.ground = landing;
     this.impact = clamp(speedBefore / SETTINGS.maxFallSpeed, 0, 1);
+    this.vx *= SETTINGS.landingGrip; // stick the landing
   }
 
   /**

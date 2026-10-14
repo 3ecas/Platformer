@@ -49,6 +49,7 @@ export const CONFIG = deepFreeze({
     size: 24,
     maxSpeed: 380, // the sideways speed the level generator plans its gaps around
     groundFriction: 3200, // stops a landing slide quickly
+    landingGrip: 0.15, // share of sideways speed kept on touching down, so landings stick instead of sliding off
     airFriction: 0, // a launch keeps its sideways speed
     // The launch arc: these set gravity, and the height of a near-full shot.
     jumpHeight: 210,
@@ -82,28 +83,34 @@ export const CONFIG = deepFreeze({
     sideMargin: 6, // keep platforms this far in from the walls
     riseMargin: 22, // the jump's peak must clear the next top by this much
     minShift: 150, // preferred sideways distance between neighbouring platforms' centres
-    // Platforms that slide side to side, from `movingFrom` metres up.
-    movingFrom: 50,
-    movingChance: { min: 0.3, max: 0.65 }, // at `movingFrom`, and at `movingFrom + movingRamp`
-    movingRamp: 250,
-    movingRange: { min: 50, max: 130 }, // how far either side of its centre it travels
+    // Each kind of challenge unlocks at its own height, about one per 100 m, and then
+    // turns up more often over the next `featureRamp` metres (`chance` min → max).
+    // A gap (a platform plus the space below it) gets at most `budget` of them, so
+    // early on they come one at a time and only stack up late in the climb.
+    featureRamp: 300,
+    features: {
+      slide: { from: 50, chance: { min: 0.25, max: 0.45 } }, // platform slides side to side
+      spikes: { from: 100, chance: { min: 0.2, max: 0.4 } }, // spikes on the far end of a platform
+      lift: { from: 150, chance: { min: 0.15, max: 0.3 } }, // platform rises and sinks
+      thorn: { from: 200, chance: { min: 0.2, max: 0.4 } }, // thorn ball drifting in the gap
+      flamer: { from: 300, chance: { min: 0.3, max: 0.6 } }, // flamethrower across the gap (where it fits)
+    },
+    budget: [
+      { from: 0, max: 1 },
+      { from: 450, max: 2 },
+      { from: 800, max: 3 },
+    ],
+    breatherUntil: 600, // below this height, a gap after a thorn or flamethrower gets neither
+    movingRange: { min: 50, max: 130 }, // how far a sliding platform travels either side of its centre
     movingSpeed: { min: 0.7, max: 1.5 }, // radians per second through the swing
-    liftsFrom: 75, // metres: from here some moving platforms rise and sink instead
-    liftShare: 0.45, // share of moving platforms that go up and down
-    liftRange: { min: 22, max: 42 }, // how far above and below its home it travels
-    // Obstacles, each starting at its own height and growing more common over `obstacleRamp` metres.
-    obstacleRamp: 300,
-    spikesFrom: 75, // metres: spikes along part of some platforms
-    spikesChance: { min: 0.25, max: 0.55 },
-    spikesShare: { min: 0.3, max: 0.5 }, // share of the platform's top that is spiked
-    spikesMinSafe: 44, // world pixels of top always left safe
-    thornsFrom: 125, // metres: thorn balls drifting in the gaps
-    thornsChance: { min: 0.2, max: 0.5 },
+    liftRange: { min: 22, max: 42 }, // how far a lift travels above and below its home
+    spikesShare: { min: 0.25, max: 0.42 }, // share of the platform's top that is spiked
+    spikesMinSafe: 60, // world pixels of top always left safe
+    spikesMinWidth: 100, // only platforms at least this wide get spikes
+    spikedReach: 0.7, // a spiked platform sits within this share of the usual sideways reach
     thornRadius: 10,
     thornRange: { min: 60, max: 170 },
-    thornSpeed: { min: 0.8, max: 1.7 },
-    flamesFrom: 100, // metres: flamethrowers on the side walls, across the way up, in gaps without a thorn
-    flamesChance: { min: 0.35, max: 0.7 }, // of the gaps whose way up runs close to a wall
+    thornSpeed: { min: 0.8, max: 1.5 },
     flameCoverMargin: 22, // world pixels the jet reaches past the platforms' centres
     flameMaxIdle: 160, // most world pixels of jet allowed before it reaches the way up
     flameMaxLength: 340,
@@ -112,11 +119,11 @@ export const CONFIG = deepFreeze({
     flameWarnTime: 0.6,
     flameOnTime: { min: 1.1, max: 1.8 },
     reachSafety: 0.85, // share of the theoretical jump reach the generator relies on
-    rampPlatforms: 120, // platforms until the difficulty maxes out
+    rampPlatforms: 140, // platforms until the jumps themselves reach full difficulty
     // Difficulty blends from `easy` to `hard`. `riseMin`/`riseMax` are fractions of the
     // highest safe climb; `reachMax` caps how far sideways the next platform may sit.
     easy: { widthMin: 100, widthMax: 160, riseMin: 0.55, riseMax: 0.75, reachMax: 0.85 },
-    hard: { widthMin: 56, widthMax: 96, riseMin: 0.75, riseMax: 0.95, reachMax: 1 },
+    hard: { widthMin: 80, widthMax: 118, riseMin: 0.7, riseMax: 0.9, reachMax: 0.9 },
   },
 
   score: {
